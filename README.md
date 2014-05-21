@@ -52,15 +52,15 @@ The project contains the following files:
 │   │   └── scala
 │   │       └── com
 │   │           └── scalawilliam
-│   │               ├── examples
-│   │               │   └── NumericNodesExample.scala
+|   │               ├── examples
+|   │               │   ├── NumericNodesExample.scala
+|   │               │   └── xml4s
+|   │               │       ├── CarParksMapReduce.scala
+|   │               │       ├── FindMostPopularKeywords2.scala
+|   │               │       ├── FindMostPopularKeywords.scala
+|   │               │       └── StreamedScalaQuery.scala
 │   │               └── xml4s
 │   │                   ├── ElementBuilder.scala
-│   │                   ├── examples
-│   │                   │   ├── CarParksMapReduce.scala
-│   │                   │   ├── FindMostPopularKeywords2.scala
-│   │                   │   ├── FindMostPopularKeywords.scala
-│   │                   │   └── StreamedScalaQuery.scala
 │   │                   ├── ScalaXmlStreamSplitter.scala
 │   │                   ├── StreamedScalaQuery.scala
 │   │                   └── XmlStreamSplitter.scala

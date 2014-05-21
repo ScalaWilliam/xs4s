@@ -2,7 +2,7 @@ name := "xs4s"
 
 scalaVersion := "2.11.0"
 
-version := "lol"
+version := "0.1-SNAPSHOT"
 
 organization := "com.scalawilliam"
 

@@ -1,21 +1,18 @@
 package com.scalawilliam.xs4s.examples
 
 import java.io.{File, FileInputStream}
-import com.scalawilliam.xs4s.XmlStreamElementCollector
-import scala.xml.Elem
+import com.scalawilliam.xs4s.XmlStreamElementProcessor
 
 object ComputeBritainsRegionalMinimumParkingCosts extends App {
 
   // http://data.gov.uk/dataset/car-parks
-  val splitter = XmlStreamElementCollector {
-    case list if list.last == "CarPark"  => (e: Elem) => e
-  }
+  val splitter = XmlStreamElementProcessor.collectElements { _.last == "CarPark" }
 
   val regionMinCosts = for {
     i <- (1 to 8).par
     file = new File(s"downloads/carparks-data/CarParkData_$i.xml")
     carPark <- {
-      import com.scalawilliam.xs4s.XmlStreamElementCollector.IteratorCreator._
+      import com.scalawilliam.xs4s.XmlStreamElementProcessor.IteratorCreator._
       splitter.processInputStream(new FileInputStream(file))
     }
     regionName <- carPark \\ "RegionName" map (_.text)

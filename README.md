@@ -9,7 +9,7 @@ Scala's scalability makes it easy to do XML stream processing with StAX.
 
 
 Get started:
-```
+```bash
 $ sbt "runMain com.scalawilliam.xs4s.examples.Question12OfXTSpeedoXmarkTests"
 
 $ sbt "runMain com.scalawilliam.xs4s.examples.ComputeBritainsRegionalMinimumParkingCosts"
@@ -29,21 +29,18 @@ Example XML processing:
 package com.scalawilliam.xs4s.examples
 
 import java.io.{File, FileInputStream}
-import com.scalawilliam.xs4s.XmlStreamElementCollector
-import scala.xml.Elem
+import com.scalawilliam.xs4s.XmlStreamElementProcessor
 
-object `Compute Britains regional minimum parking costs` extends App {
+object ComputeBritainsRegionalMinimumParkingCosts extends App {
 
   // http://data.gov.uk/dataset/car-parks
-  val splitter = XmlStreamElementCollector {
-    case list if list.last == "CarPark"  => (e: Elem) => e
-  }
+  val splitter = XmlStreamElementProcessor.collectElements { _.last == "CarPark" }
 
   val regionMinCosts = for {
     i <- (1 to 8).par
     file = new File(s"downloads/carparks-data/CarParkData_$i.xml")
     carPark <- {
-      import com.scalawilliam.xs4s.XmlStreamElementCollector.IteratorCreator._
+      import com.scalawilliam.xs4s.XmlStreamElementProcessor.IteratorCreator._
       splitter.processInputStream(new FileInputStream(file))
     }
     regionName <- carPark \\ "RegionName" map (_.text)
@@ -61,7 +58,6 @@ object `Compute Britains regional minimum parking costs` extends App {
   sortedParkingCosts foreach println
 
 }
-
 ```
 
 This can consume 100MB files or 4GB files without any problems. And it does it fast. It converts XML streams into Scala XML trees on demand, which you can then query from.
@@ -72,7 +68,7 @@ This project has the following source files:
 src/main/scala/com/scalawilliam/xs4s/examples/FindMostPopularWikipediaKeywords.scala
 src/main/scala/com/scalawilliam/xs4s/examples/ComputeBritainsRegionalMinimumParkingCosts.scala
 src/main/scala/com/scalawilliam/xs4s/examples/Question12OfXTSpeedoXmarkTests.scala
-src/main/scala/com/scalawilliam/xs4s/XmlStreamElementCollector.scala
+src/main/scala/com/scalawilliam/xs4s/XmlStreamElementProcessor.scala
 src/main/scala/com/scalawilliam/xs4s/Util.scala
 src/main/scala/com/scalawilliam/xs4s/ElementBuilder.scala
 src/main/scala/com/scalawilliam/xs4s/XmlEventIterator.scala

@@ -4,17 +4,17 @@ import java.io.InputStream
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.{EndElement, StartElement, XMLEvent}
 import com.scalawilliam.xs4s.ElementBuilder.{NoElement, FinalElement, XmlBuilder}
-import com.scalawilliam.xs4s.XmlStreamElementCollector.CollectorDefinition
+import com.scalawilliam.xs4s.XmlStreamElementProcessor.CollectorDefinition
 import scala.xml.Elem
 
-object XmlStreamElementCollector {
+object XmlStreamElementProcessor {
 
   lazy val xmlInputfactory = XMLInputFactory.newInstance()
 
   object IteratorCreator {
-    implicit class addIteratorCreateorToBasicElementExtractorBuilder[T](beeb: XmlStreamElementCollector[T]) {
+    implicit class addIteratorCreateorToBasicElementExtractorBuilder[T](beeb: XmlStreamElementProcessor[T]) {
       def processInputStream(inputStream: InputStream): Iterator[T] = {
-        val reader = XmlStreamElementCollector.xmlInputfactory.createXMLEventReader(inputStream)
+        val reader = XmlStreamElementProcessor.xmlInputfactory.createXMLEventReader(inputStream)
         import XmlEventIterator._
         reader.scanLeft(beeb.initial)(_.process(_)).collect{case beeb.Captured(_, anchorElement) => anchorElement}
       }
@@ -28,12 +28,23 @@ object XmlStreamElementCollector {
    * and change state to Captured().
    */
   type CollectorDefinition[T] = PartialFunction[List[String], Elem => T]
+
+  def collectElements(first: List[String] => Boolean, rest: (List[String] => Boolean)*) = {
+
+    XmlStreamElementProcessor(
+      { case list if first(list) => (e: Elem) => e },
+      rest.map(f =>
+        { case list if f(list) => (e: Elem) => e }: CollectorDefinition[Elem]
+      ) :_*
+    )
+  }
+
 }
 /**
  * See tests for examples.
  * @tparam T    Return type of these capture converters
  */
-case class XmlStreamElementCollector[T](first: CollectorDefinition[T],
+case class XmlStreamElementProcessor[T](first: CollectorDefinition[T],
                                         rest: CollectorDefinition[T]*) {
   val captures = List(first) ++ rest
 

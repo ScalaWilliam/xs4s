@@ -1,8 +1,7 @@
 package com.scalawilliam.xs4s.examples
 
-import scala.xml.Elem
 import java.net.URL
-import com.scalawilliam.xs4s.XmlStreamElementCollector
+import com.scalawilliam.xs4s.XmlStreamElementProcessor
 
 object FindMostPopularWikipediaKeywords extends App {
 
@@ -10,10 +9,10 @@ object FindMostPopularWikipediaKeywords extends App {
   val url = new URL("https://dumps.wikimedia.org/enwiki/20140903/enwiki-20140903-abstract.xml")
 
   // builder that extracts all the anchors
-  val anchorSplitter = XmlStreamElementCollector { case list if list.last == "anchor"  => (e: Elem) => e }
+  val anchorSplitter = XmlStreamElementProcessor.collectElements(_.last == "anchor")
 
   val anchors = {
-    import com.scalawilliam.xs4s.XmlStreamElementCollector.IteratorCreator._
+    import com.scalawilliam.xs4s.XmlStreamElementProcessor.IteratorCreator._
     val anchorsStream = anchorSplitter.processInputStream(url.openStream())
     // add 'full' as an argument to go through the whole stream
     if ( args contains "full" ) {

@@ -1,7 +1,11 @@
 package com.scalawilliam.examples.xml4s
 
-import java.io.{FileInputStream, File}
-import com.scalawilliam.xml4s.ScalaXmlStreamSplitter
+import java.io.{ByteArrayInputStream, FileInputStream, File}
+import javax.xml.stream.XMLInputFactory
+
+import com.scalawilliam.xs4s.{XmlEventIterator, BasicElementExtractorBuilder}
+
+import scala.xml.Elem
 
 object CarParksMapReduce extends App {
 
@@ -12,14 +16,14 @@ object CarParksMapReduce extends App {
     def !==(notValue: String): Boolean =
       nodeSeq.text != notValue
   }
-
-  // Goal: find the % of car parks per region that have CCTV
-  val splitter = ScalaXmlStreamSplitter(matchAtTag = _.getName.getLocalPart == "CarPark")
-
+  val splitter = BasicElementExtractorBuilder { case list if list.last == "CarPark"  => (e: Elem) => e }
+  val inputFactory = XMLInputFactory.newInstance()
+  import XmlEventIterator._
   val regionMinCosts = for {
     i <- (1 to 8).par
     file = new File(s"carparks/CarParkData_$i.xml")
-    carPark <- splitter(new FileInputStream(file))
+    streamer = inputFactory.createXMLEventReader(new FileInputStream(file))
+    splitter.Captured(_, carPark) <- streamer.scanLeft(splitter.initial)(_.process(_))
     regionName <- carPark \\ "RegionName" map (_.text)
     minCost <- (carPark \\ "MinCostPence") map (_.text.toInt)
     if minCost > 0

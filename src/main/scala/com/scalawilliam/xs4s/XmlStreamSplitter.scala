@@ -1,4 +1,4 @@
-package com.scalawilliam.xml4s
+package com.scalawilliam.xs4s
 
 import java.io.{ByteArrayOutputStream, ByteArrayInputStream, InputStream}
 import javax.xml.stream.events.{EndElement, XMLEvent, StartElement}

@@ -1,7 +1,11 @@
-package com.scalawilliam.examples.xml4s
+package com.scalawilliam.examples.xs4s
 
 import java.io._
-import com.scalawilliam.xml4s.ScalaXmlStreamSplitter
+import javax.xml.stream.XMLInputFactory
+
+import com.scalawilliam.xs4s.{XmlEventIterator, BasicElementExtractorBuilder}
+
+import scala.xml.Elem
 
 object FindMostPopularKeywords2 extends App {
 
@@ -29,10 +33,17 @@ object FindMostPopularKeywords2 extends App {
     }
   }
 
+  val xmlInputFactory = XMLInputFactory.newInstance()
   // Wikipedia abstracts - 4GB
   val anchor = new File("enwiki-20140402-abstract.xml")
-  val anchors = ScalaXmlStreamSplitter(matchAtTag = _.getName.getLocalPart == "anchor")(new FileInputStream(anchor))
-  val keywordCounts = anchors.map(_.text).filter(_.nonEmpty).map(n => Map(n -> 1)).reduce(mergeCountMaps[String])
+  val xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(anchor))
+  val anchorGetter = BasicElementExtractorBuilder { case l if l.contains("anchor") => (e: Elem) => e }
+
+  import XmlEventIterator._
+  val datums = xmlEventReader.scanLeft(anchorGetter.initial)(_.process(_)).collect {
+    case anchorGetter.Captured(_, d) => d
+  }
+  val keywordCounts = datums.map(_.text).filter(_.nonEmpty).map(n => Map(n -> 1)).reduce(mergeCountMaps[String])
   val topKeywords = keywordCounts.toList.sortBy{case (keyword, count) => -count}
   println(topKeywords mkString "\n")
 

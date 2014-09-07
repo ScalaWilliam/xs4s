@@ -1,7 +1,7 @@
-package com.scalawilliam.examples.xml4s
+package com.scalawilliam.examples.xs4s
 
 import java.io._
-import com.scalawilliam.xml4s.XmlStreamSplitter
+import com.scalawilliam.xs4s.XmlStreamSplitter
 
 object FindMostPopularKeywords extends App {
 

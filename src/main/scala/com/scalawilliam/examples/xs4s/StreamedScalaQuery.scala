@@ -2,11 +2,13 @@ package com.scalawilliam.examples.xml4s
 
 import javax.xml.stream.XMLInputFactory
 import java.io.{InputStream, File, FileInputStream}
-import com.scalawilliam.xml4s.TreeExtractor
+
+import com.scalawilliam.xs4s.{XmlEventIterator, BasicElementExtractorBuilder}
+
+import scala.xml.Elem
 
 object StreamedScalaQuery extends App {
-  import TreeExtractor.CaptureBuilder._
-  lazy val xmlInputFactory = XMLInputFactory.newInstance()
+  val xmlInputFactory = XMLInputFactory.newInstance()
   // xmark1 XML file - 100MB or so - get it from XT Speedo chaps
    def fileAsInputStream = new FileInputStream(new File("XT-Speedo/data/xmark-tests/xmark1.xml"))
    println(testInput(fileAsInputStream))
@@ -18,22 +20,24 @@ object StreamedScalaQuery extends App {
      case class InitialOpen(value: Double)
      case class Person(name: String, income: Double)
 
-     // here we capture XML
-     val captures = List(
-       ("site" \ "open_auctions" \ "open_auction" \ "initial") {
-         case initialElement =>
-           Seq(InitialOpen(initialElement.text.toDouble))
+     val splitter = BasicElementExtractorBuilder(
+       {
+         case List("site", "open_auctions", "open_auction", "initial") =>
+           initialElement =>
+             Seq(InitialOpen(initialElement.text.toDouble))
        },
-       ("site" \ "people" \ "person") {
-         case personElement => for {
-           name <- personElement \ "name" map (_.text)
-           income = (personElement \ "profile" \ "@income").map(_.text.toDouble).headOption.getOrElse(0.0)
-         } yield Person(name, income)
+       {
+         case List("site", "people", "person") =>
+           personElement => for {
+             name <- personElement \ "name" map (_.text)
+             income = (personElement \ "profile" \ "@income").map(_.text.toDouble).headOption.getOrElse(0.0)
+           } yield Person(name, income)
        }
      )
-
-     val collectedData = TreeExtractor(captures).apply(xmlEventReader).toList
-
+     import XmlEventIterator._
+     val collectedData = xmlEventReader.scanLeft(splitter.initial)(_.process(_)).collect {
+       case splitter.Captured(_, d) => d
+     }.toList.flatten
      <out>{
        for {
          Person(name, income) <- collectedData
@@ -44,4 +48,4 @@ object StreamedScalaQuery extends App {
        } yield <items name={name}>{noItems.toString}</items>}</out>
    }
 
- }
+}

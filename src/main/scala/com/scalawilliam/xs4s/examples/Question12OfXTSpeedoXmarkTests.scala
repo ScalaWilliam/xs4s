@@ -1,16 +1,17 @@
-package com.scalawilliam.examples.xml4s
+package com.scalawilliam.xs4s.examples
 
 import javax.xml.stream.XMLInputFactory
 import java.io.{InputStream, File, FileInputStream}
+import com.scalawilliam.xs4s.{XmlEventIterator, XmlStreamElementCollector}
 
-import com.scalawilliam.xs4s.{XmlEventIterator, BasicElementExtractorBuilder}
+object Question12OfXTSpeedoXmarkTests extends App {
 
-import scala.xml.Elem
-
-object StreamedScalaQuery extends App {
+  /** Doing the same thing as the following XSLT:
+    * https://github.com/Saxonica/XT-Speedo/blob/master/data/xmark-tests/q12.xsl
+    */
   val xmlInputFactory = XMLInputFactory.newInstance()
   // xmark1 XML file - 100MB or so - get it from XT Speedo chaps
-   def fileAsInputStream = new FileInputStream(new File("XT-Speedo/data/xmark-tests/xmark1.xml"))
+   def fileAsInputStream = new FileInputStream(new File("downloads/xmark4.xml"))
    println(testInput(fileAsInputStream))
 
    def testInput(inputStream: InputStream): scala.xml.Elem = {
@@ -20,7 +21,7 @@ object StreamedScalaQuery extends App {
      case class InitialOpen(value: Double)
      case class Person(name: String, income: Double)
 
-     val splitter = BasicElementExtractorBuilder(
+     val splitter = XmlStreamElementCollector(
        {
          case List("site", "open_auctions", "open_auction", "initial") =>
            initialElement =>

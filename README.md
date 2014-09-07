@@ -3,67 +3,82 @@ xs4s
 
 XML Streaming for Scala
 
-
 This library shows how to use Scala to process XML streams.
 
-Scala's scalability makes it easy to do XML stream processing with StAX. For example:
+Scala's scalability makes it easy to do XML stream processing with StAX.
+
+
+Get started:
+```
+$ sbt "runMain com.scalawilliam.xs4s.examples.Question12OfXTSpeedoXmarkTests"
+
+$ sbt "runMain com.scalawilliam.xs4s.examples.ComputeBritainsRegionalMinimumParkingCosts"
+
+$ sbt "runMain com.scalawilliam.xs4s.examples.FindMostPopularWikipediaKeywords"
+
+# Fetches 4GB of Wikipedia data over the wire as a stream
+$ sbt "runMain com.scalawilliam.xs4s.examples.FindMostPopularWikipediaKeywords full"
+```
+
+The code is lightweight, with ElementBuilder being the heaviest code as it converts
+StAX events into Scala XML classes.
+
+Example XML processing:
 
 ```scala
+package com.scalawilliam.xs4s.examples
 
- val xmlEventReader = xmlInputFactory.createXMLEventReader(inputStream)
+import java.io.{File, FileInputStream}
+import com.scalawilliam.xs4s.XmlStreamElementCollector
+import scala.xml.Elem
 
- case class InitialOpen(value: Double)
- case class Person(name: String, income: Double)
+object `Compute Britains regional minimum parking costs` extends App {
 
- // here we capture XML
- val captures = List(
-   ("site" \ "open_auctions" \ "open_auction" \ "initial") {
-     case initialElement =>
-       Seq(InitialOpen(initialElement.text.toDouble))
-   },
-   ("site" \ "people" \ "person") {
-     case personElement => for {
-       name <- personElement \ "name" map (_.text)
-       income = (personElement \ "profile" \ "@income").map(_.text.toDouble).headOption.getOrElse(0.0)
-     } yield Person(name, income)
-   }
- )
+  // http://data.gov.uk/dataset/car-parks
+  val splitter = XmlStreamElementCollector {
+    case list if list.last == "CarPark"  => (e: Elem) => e
+  }
 
- val collectedData = TreeExtractor(captures).apply(xmlEventReader).toList
+  val regionMinCosts = for {
+    i <- (1 to 8).par
+    file = new File(s"downloads/carparks-data/CarParkData_$i.xml")
+    carPark <- {
+      import com.scalawilliam.xs4s.XmlStreamElementCollector.IteratorCreator._
+      splitter.processInputStream(new FileInputStream(file))
+    }
+    regionName <- carPark \\ "RegionName" map (_.text)
+    minCost <- (carPark \\ "MinCostPence") map (_.text.toInt)
+    if minCost > 0
+  } yield regionName -> minCost
 
- <out>{
-   for {
-     Person(name, income) <- collectedData
-     noItems = collectedData.count {
-       case InitialOpen(value) if income > 5000 * value => true;
-       case _ => false
-     }
-   } yield <items name={name}>{noItems.toString}</items>}</out>
+  val regionMinimumParkingCosts = regionMinCosts.toList
+    .groupBy{case (region, cost) => region}
+    .mapValues{regionCosts => regionCosts.map{ case (region, cost) => cost }}
+    .mapValues(costs => costs.sum / costs.size)
+
+  val sortedParkingCosts = regionMinimumParkingCosts.toList.sortBy{case (region, cost) => -cost}
+
+  sortedParkingCosts foreach println
+
+}
 
 ```
 
 This can consume 100MB files or 4GB files without any problems. And it does it fast. It converts XML streams into Scala XML trees on demand, which you can then query from.
 
-The project contains the following files:
+This project has the following source files:
 
 ```
-├── src
-│   ├── main
-│   │   └── scala
-│   │       └── com
-│   │           └── scalawilliam
-|   │               ├── examples
-|   │               │   ├── NumericNodesExample.scala
-|   │               │   └── xml4s
-|   │               │       ├── CarParksMapReduce.scala
-|   │               │       ├── FindMostPopularKeywords2.scala
-|   │               │       ├── FindMostPopularKeywords.scala
-|   │               │       └── StreamedScalaQuery.scala
-│   │               └── xml4s
-│   │                   ├── ElementBuilder.scala
-│   │                   ├── ScalaXmlStreamSplitter.scala
-│   │                   ├── StreamedScalaQuery.scala
-│   │                   └── XmlStreamSplitter.scala
+src/main/scala/com/scalawilliam/xs4s/examples/FindMostPopularWikipediaKeywords.scala
+src/main/scala/com/scalawilliam/xs4s/examples/ComputeBritainsRegionalMinimumParkingCosts.scala
+src/main/scala/com/scalawilliam/xs4s/examples/Question12OfXTSpeedoXmarkTests.scala
+src/main/scala/com/scalawilliam/xs4s/XmlStreamElementCollector.scala
+src/main/scala/com/scalawilliam/xs4s/Util.scala
+src/main/scala/com/scalawilliam/xs4s/ElementBuilder.scala
+src/main/scala/com/scalawilliam/xs4s/XmlEventIterator.scala
+src/test/scala/com/scalawilliam/xs4s/BasicElementExtractorBuilderSpec.scala
+src/test/scala/com/scalawilliam/xs4s/ElementBuilderSpec.scala
 ```
+
 
 ScalaWilliam <https://scalawilliam.com/>

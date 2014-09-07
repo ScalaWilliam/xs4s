@@ -27,7 +27,7 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
 
     val inputFactory = XMLInputFactory.newInstance()
 
-    def process[T](instance: BasicElementExtractorBuilder[T]): Vector[T] = {
+    def process[T](instance: XmlStreamElementCollector[T]): Vector[T] = {
       val is = new ByteArrayInputStream(input.getBytes("UTF-8"))
       try {
         val streamer = inputFactory.createXMLEventReader(is)
@@ -39,16 +39,16 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
         } finally streamer.close()
       } finally is.close()
     }
-    implicit class builderProcess[T](i: BasicElementExtractorBuilder[T]) {
+    implicit class builderProcess[T](i: XmlStreamElementCollector[T]) {
       def materialize = process[T](i)
     }
 
     "Not match any elements" in {
-      val extractor = BasicElementExtractorBuilder( { case List("fail") => (e: Elem) => e } )
+      val extractor = XmlStreamElementCollector( { case List("fail") => (e: Elem) => e } )
       extractor.materialize shouldBe empty
     }
     "Match /items/item" in {
-      val extractor = BasicElementExtractorBuilder( {
+      val extractor = XmlStreamElementCollector( {
         case List("items", "item") => (e: Elem) => e
       })
       extractor.materialize.map(_.toString) should contain only (
@@ -57,7 +57,7 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
       )
     }
     "Match /items/item and /items/embedded/item" in {
-      BasicElementExtractorBuilder(
+      XmlStreamElementCollector(
         { case List("items", "item") => (e: Elem) => e },
         { case List("items", "embedded", "item") => (e: Elem) => e }
       ).materialize.map(_.toString) should contain only (

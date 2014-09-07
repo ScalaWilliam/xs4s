@@ -2,7 +2,6 @@ package com.scalawilliam.xs4s
 
 import javax.xml.stream.XMLEventReader
 import javax.xml.stream.events.{XMLEvent, StartElement}
-
 import scala.xml.Elem
 
 /**

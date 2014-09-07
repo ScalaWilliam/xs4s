@@ -1,27 +1,46 @@
 package com.scalawilliam.xs4s
 
+import java.io.InputStream
+import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.{EndElement, StartElement, XMLEvent}
 import com.scalawilliam.xs4s.ElementBuilder.{NoElement, FinalElement, XmlBuilder}
+import com.scalawilliam.xs4s.XmlStreamElementCollector.CollectorDefinition
 import scala.xml.Elem
 
-object BasicElementExtractorBuilder {
+object XmlStreamElementCollector {
+
+  lazy val xmlInputfactory = XMLInputFactory.newInstance()
+
+  object IteratorCreator {
+    implicit class addIteratorCreateorToBasicElementExtractorBuilder[T](beeb: XmlStreamElementCollector[T]) {
+      def processInputStream(inputStream: InputStream): Iterator[T] = {
+        val reader = XmlStreamElementCollector.xmlInputfactory.createXMLEventReader(inputStream)
+        import XmlEventIterator._
+        reader.scanLeft(beeb.initial)(_.process(_)).collect{case beeb.Captured(_, anchorElement) => anchorElement}
+      }
+    }
+  }
+
+  /**
+   * Collector Definition: if the 'xpath' of the current position is equal to the
+   * the List[String] part of this parameter, then we begin capturing
+   * its element. Once that element is captured, we call _2(element)
+   * and change state to Captured().
+   */
+  type CollectorDefinition[T] = PartialFunction[List[String], Elem => T]
 }
 /**
  * See tests for examples.
- * @param first Specifier: if the 'xpath' of the current position is equal to the
- *              the List[String] part of this parameter, then we begin capturing
- *              its element. Once that element is captured, we call _2(element)
- *              and change state to Captured().
- * @param rest  We can have any combination of these Specifiers
- *              However they cannot intersect.
  * @tparam T    Return type of these capture converters
  */
-case class BasicElementExtractorBuilder[T](first: PartialFunction[List[String], Elem => T], rest: PartialFunction[List[String], Elem => T]*) {
+case class XmlStreamElementCollector[T](first: CollectorDefinition[T],
+                                        rest: CollectorDefinition[T]*) {
   val captures = List(first) ++ rest
 
   trait EventProcessor {
     val process: PartialFunction[XMLEvent, EventProcessor]
   }
+
 
   def apply(): EventProcessor = ProcessingStack()
   def initial: EventProcessor = ProcessingStack()
@@ -73,19 +92,3 @@ case class BasicElementExtractorBuilder[T](first: PartialFunction[List[String], 
   }
 
 }
-//object TreeExtractor {
-//  case class Capture[+T](path: Seq[String], map: ElementToSeq[T])
-//  type ElementToSeq[+T] = Elem => Seq[T]
-//  case class CaptureBuilder(items: Seq[String]) {
-//    def apply[T](elementBuilder: ElementToSeq[T]): Capture[T] = Capture(items, elementBuilder)
-//  }
-//  object CaptureBuilder {
-//    implicit class startAtString(a: String) {
-//      def \(b: String) = CaptureBuilder(Seq(a, b))
-//    }
-//    implicit class startAtCaptureBuilder(a: CaptureBuilder) {
-//      def \(b: String) = CaptureBuilder(a.items :+ b)
-//    }
-//  }
-//}
-//

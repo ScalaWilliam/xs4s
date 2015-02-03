@@ -7,9 +7,22 @@ This library shows how to use Scala to process XML streams.
 
 Scala's scalability makes it easy to do XML stream processing with StAX.
 
+Using the library
+======
+Add the following to your build.sbt:
+```sbt
+scalaVersion := "2.11.5"
 
-Get started:
+libraryDependencies += "com.scalawilliam" %% "xs4s" % "0.1-SNAPSHOT"
+
+resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+```
+
+Running the examples
+======
 ```bash
+$ git clone https://github.com/ScalaWilliam/xs4s.git
+
 $ sbt "runMain com.scalawilliam.xs4s.examples.Question12OfXTSpeedoXmarkTests"
 
 $ sbt "runMain com.scalawilliam.xs4s.examples.ComputeBritainsRegionalMinimumParkingCosts"

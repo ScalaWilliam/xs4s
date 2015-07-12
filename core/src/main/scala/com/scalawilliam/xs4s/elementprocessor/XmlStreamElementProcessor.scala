@@ -1,10 +1,13 @@
-package com.scalawilliam.xs4s
+package com.scalawilliam.xs4s.elementprocessor
 
 import java.io.InputStream
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.{EndElement, StartElement, XMLEvent}
-import com.scalawilliam.xs4s.ElementBuilder.{NoElement, FinalElement, XmlBuilder}
-import com.scalawilliam.xs4s.XmlStreamElementProcessor.CollectorDefinition
+
+import com.scalawilliam.xs4s.XmlEventIterator
+import com.scalawilliam.xs4s.elementbuilder.{FinalElement, NoElement, XmlBuilder}
+import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor.CollectorDefinition
+
 import scala.xml.Elem
 
 object XmlStreamElementProcessor {
@@ -51,7 +54,6 @@ case class XmlStreamElementProcessor[T](first: CollectorDefinition[T],
   trait EventProcessor {
     val process: PartialFunction[XMLEvent, EventProcessor]
   }
-
 
   def apply(): EventProcessor = ProcessingStack()
   def initial: EventProcessor = ProcessingStack()

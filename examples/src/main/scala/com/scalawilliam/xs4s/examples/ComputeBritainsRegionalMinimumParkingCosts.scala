@@ -1,7 +1,8 @@
 package com.scalawilliam.xs4s.examples
 
 import java.io.{File, FileInputStream}
-import com.scalawilliam.xs4s.XmlStreamElementProcessor
+
+import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
 
 object ComputeBritainsRegionalMinimumParkingCosts extends App {
 
@@ -12,7 +13,7 @@ object ComputeBritainsRegionalMinimumParkingCosts extends App {
     i <- (1 to 8).par
     file = new File(s"downloads/carparks-data/CarParkData_$i.xml")
     carPark <- {
-      import com.scalawilliam.xs4s.XmlStreamElementProcessor.IteratorCreator._
+      import XmlStreamElementProcessor.IteratorCreator._
       splitter.processInputStream(new FileInputStream(file))
     }
     regionName <- carPark \\ "RegionName" map (_.text)

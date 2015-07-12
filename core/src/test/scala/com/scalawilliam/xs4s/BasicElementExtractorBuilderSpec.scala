@@ -2,6 +2,7 @@ package com.scalawilliam.xs4s
 
 import java.io.ByteArrayInputStream
 import javax.xml.stream.XMLInputFactory
+import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
 import org.scalatest.{Inside, Matchers, WordSpec}
 import scala.xml.Elem
 

@@ -28,7 +28,7 @@ class ElementBuilderSpec extends WordSpec with Matchers with Inspectors with Ins
       val is = new ByteArrayInputStream(input.getBytes("UTF-8"))
       val inputFactory = XMLInputFactory.newInstance()
       val streamer = inputFactory.createXMLEventReader(is)
-      import com.scalawilliam.xs4s.ElementBuilder.eventReaderExtractors
+      import com.scalawilliam.xs4s.elementbuilder.eventReaderExtractors
       val tree = streamer.blockingElement.next()
 
       inside(tree) {

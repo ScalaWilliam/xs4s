@@ -2,7 +2,8 @@ package com.scalawilliam.xs4s.examples
 
 import javax.xml.stream.XMLInputFactory
 import java.io.{InputStream, File, FileInputStream}
-import com.scalawilliam.xs4s.{XmlEventIterator, XmlStreamElementProcessor}
+import com.scalawilliam.xs4s.XmlEventIterator
+import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
 
 object Question12OfXTSpeedoXmarkTests extends App {
 

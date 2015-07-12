@@ -4,12 +4,11 @@ lazy val root = (project in file("."))
 
 lazy val core = project.settings(
   libraryDependencies ++= Seq(
-    "xmlunit" % "xmlunit" % "1.5",
-    "org.codehaus.woodstox" % "woodstox-core-asl" % "4.3.0",
+    "xmlunit" % "xmlunit" % "1.6",
+    "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1",
     "org.compass-project" % "compass" % "2.2.0",
-    "com.github.scala-incubator.io" %% "scala-io-file" % "0.4.3-1",
-    "org.scalatest" %% "scalatest" % "2.2.1" % "test",
-    "org.scala-lang.modules" %% "scala-xml" % "1.0.3"
+    "org.scalatest" %% "scalatest" % "2.2.5" % "test",
+    "org.scala-lang.modules" %% "scala-xml" % "1.0.4"
   ),
   name := "xs4s",
   publishMavenStyle := true,

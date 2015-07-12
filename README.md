@@ -15,18 +15,17 @@ Add the following to your build.sbt:
 ```sbt
 scalaVersion := "2.11.7"
 
-libraryDependencies += "com.scalawilliam" %% "xs4s" % "0.1-SNAPSHOT"
+libraryDependencies += "com.scalawilliam" %% "xs4s" % "0.2-SNAPSHOT"
 
 resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
 Examples
 ======
-```
-examples/src/main/scala/com/scalawilliam/xs4s/examples/ComputeBritainsRegionalMinimumParkingCosts.scala
-examples/src/main/scala/com/scalawilliam/xs4s/examples/FindMostPopularWikipediaKeywords.scala
-examples/src/main/scala/com/scalawilliam/xs4s/examples/Question12OfXTSpeedoXmarkTests.scala
-```
+
+* ComputeBritainsRegionalMinimumParkingCosts
+* FindMostPopularWikipediaKeywords
+* Question12OfXTSpeedoXmarkTests
 
 Running the examples
 ======
@@ -42,6 +41,20 @@ The code is lightweight, with ElementBuilder being the heaviest code as it conve
 StAX events into Scala XML classes.
 
 This can consume 100MB files or 4GB files without any problems. And it does it fast. It converts XML streams into Scala XML trees on demand, which you can then query from.
+
+Publishing
+======
+``` bash
+$ cat <<EOF > ~/.sbt/0.13/sonatype.sbt
+credentials +=
+  Credentials("Sonatype Nexus Repository Manager",
+              "oss.sonatype.org",
+              "USERNAME",
+              "PASSWORD")
+EOF
+
+$ sbt core/publish
+```
 
 
 ScalaWilliam <https://www.scalawilliam.com/>

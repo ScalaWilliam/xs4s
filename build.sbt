@@ -8,7 +8,7 @@ lazy val core = project.settings(
     "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1",
     "org.compass-project" % "compass" % "2.2.0",
     "org.scalatest" %% "scalatest" % "2.2.5" % "test",
-    "org.scala-lang.modules" %% "scala-xml" % "1.0.4"
+    "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   ),
   name := "xs4s",
   publishMavenStyle := true,

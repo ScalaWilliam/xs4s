@@ -45,27 +45,26 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
     }
 
     "Not match any elements" in {
-      val extractor = XmlStreamElementProcessor( { case List("fail") => (e: Elem) => e } )
+      val extractor = XmlStreamElementProcessor({ case List("fail") => (e: Elem) => e })
       extractor.materialize shouldBe empty
     }
     "Match /items/item" in {
-      val extractor = XmlStreamElementProcessor( {
+      val extractor = XmlStreamElementProcessor({
         case List("items", "item") => (e: Elem) => e
       })
-      extractor.materialize.map(_.toString) should contain only (
+      extractor.materialize.map(_.toString) should contain only(
         "<item>General</item>",
         "<item><item>Nested</item></item>"
-      )
+        )
     }
     "Match /items/item and /items/embedded/item" in {
       XmlStreamElementProcessor(
-        { case List("items", "item") => (e: Elem) => e },
-        { case List("items", "embedded", "item") => (e: Elem) => e }
-      ).materialize.map(_.toString) should contain only (
+        { case List("items", "item") => (e: Elem) => e }, { case List("items", "embedded", "item") => (e: Elem) => e }
+      ).materialize.map(_.toString) should contain only(
         "<item>Embedded</item>",
         "<item>General</item>",
         "<item><item>Nested</item></item>"
-      )
+        )
     }
   }
 

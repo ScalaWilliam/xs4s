@@ -7,7 +7,7 @@ lazy val core = project.settings(
     "xmlunit" % "xmlunit" % "1.6",
     "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1",
     "org.compass-project" % "compass" % "2.2.0",
-    "org.scalatest" %% "scalatest" % "2.2.5" % "test",
+    "org.scalatest" %% "scalatest" % "2.2.6" % "test",
     "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
   ),
   name := "xs4s",
@@ -25,6 +25,11 @@ lazy val core = project.settings(
       <license>
         <name>BSD-style</name>
         <url>http://www.opensource.org/licenses/bsd-license.php</url>
+        <distribution>repo</distribution>
+      </license>
+      <license>
+        <name>The Apache Software License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
         <distribution>repo</distribution>
       </license>
     </licenses>

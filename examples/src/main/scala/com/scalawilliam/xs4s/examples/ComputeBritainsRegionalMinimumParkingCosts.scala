@@ -7,7 +7,9 @@ import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
 object ComputeBritainsRegionalMinimumParkingCosts extends App {
 
   // http://data.gov.uk/dataset/car-parks
-  val splitter = XmlStreamElementProcessor.collectElements { _.last == "CarPark" }
+  val splitter = XmlStreamElementProcessor.collectElements {
+    _.last == "CarPark"
+  }
 
   val regionMinCosts = for {
     i <- (1 to 8).par
@@ -22,11 +24,11 @@ object ComputeBritainsRegionalMinimumParkingCosts extends App {
   } yield regionName -> minCost
 
   val regionMinimumParkingCosts = regionMinCosts.toList
-    .groupBy{case (region, cost) => region}
-    .mapValues{regionCosts => regionCosts.map{ case (region, cost) => cost }}
+    .groupBy { case (region, cost) => region }
+    .mapValues { regionCosts => regionCosts.map { case (region, cost) => cost } }
     .mapValues(costs => costs.sum / costs.size)
 
-  val sortedParkingCosts = regionMinimumParkingCosts.toList.sortBy{case (region, cost) => -cost}
+  val sortedParkingCosts = regionMinimumParkingCosts.toList.sortBy { case (region, cost) => -cost }
 
   sortedParkingCosts foreach println
 

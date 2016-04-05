@@ -16,7 +16,7 @@ object FindMostPopularWikipediaKeywords extends App {
     import XmlStreamElementProcessor.IteratorCreator._
     val anchorsStream = anchorSplitter.processInputStream(url.openStream())
     // add 'full' as an argument to go through the whole stream
-    if ( args contains "full" ) {
+    if (args contains "full") {
       anchorsStream
     } else {
       anchorsStream take 500
@@ -29,7 +29,7 @@ object FindMostPopularWikipediaKeywords extends App {
   val keywordCounts = groupedAnchors.reduce(mergeCountMaps[String]).filter(_._2 > 1)
 
   // and sort them for us
-  val topKeywords = keywordCounts.toList.sortBy { case (keyword, count) => -count}
+  val topKeywords = keywordCounts.toList.sortBy { case (keyword, count) => -count }
 
   topKeywords foreach println
 
@@ -40,7 +40,7 @@ object FindMostPopularWikipediaKeywords extends App {
       v = a(k) + b(k)
     } yield k -> v)
 
-    if ( result.size > 5000 ) {
+    if (result.size > 5000) {
       println(s"Merging ${a.size} + ${b.size} => ${result.size}")
     }
     result

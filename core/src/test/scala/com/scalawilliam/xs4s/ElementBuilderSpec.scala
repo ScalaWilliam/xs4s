@@ -8,9 +8,9 @@ import scala.xml._
 class ElementBuilderSpec extends WordSpec with Matchers with Inspectors with Inside {
 
   /**
-   * The purpose of ElementBuilder is to
-   * turn a (StartElement, ...) into a scala.xml.Elem
-   */
+    * The purpose of ElementBuilder is to
+    * turn a (StartElement, ...) into a scala.xml.Elem
+    */
 
   "Element builder spec" must {
     "Pass a sanity test of a complex XML" in {
@@ -32,7 +32,7 @@ class ElementBuilderSpec extends WordSpec with Matchers with Inspectors with Ins
       val tree = streamer.blockingElement.next()
 
       inside(tree) {
-        case Elem(prefix, label, attributes, scope, child @ _*) =>
+        case Elem(prefix, label, attributes, scope, child@_*) =>
           prefix shouldBe null
           label shouldBe "stuff"
           attributes shouldBe Null
@@ -42,7 +42,7 @@ class ElementBuilderSpec extends WordSpec with Matchers with Inspectors with Ins
               cdata.text shouldBe "&"
               ampNl.text shouldBe "&\n"
               inside(e) {
-                case Elem(prefix2, label2, attributes2, scope2, child2 @ _*) =>
+                case Elem(prefix2, label2, attributes2, scope2, child2@_*) =>
                   prefix2 shouldBe "m"
                   label2 shouldBe "more"
                   attributes2 shouldBe Null
@@ -52,7 +52,7 @@ class ElementBuilderSpec extends WordSpec with Matchers with Inspectors with Ins
                       nlOneBit.text shouldBe "\nOne bit "
                       cmt.commentText shouldBe " of commentary "
                       inside(otherE) {
-                        case Elem(prefix3, label3, attributes3, scope3, child3 @ _*) =>
+                        case Elem(prefix3, label3, attributes3, scope3, child3@_*) =>
                           prefix3 shouldBe "n"
                           label3 shouldBe "extra"
                           inside(attributes3) {

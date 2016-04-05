@@ -29,9 +29,10 @@ case class NonElement(mostRecent: XMLEvent, reverseList: XMLEvent*) extends XmlB
 
   def process: EventToBuilder = produceBuildingElement orElse appendNonElement
 
-  private def produceBuildingElement: PartialFunction[XMLEvent, BuildingElement] = xmlEventToPartialElement andThen {
-    case e => BuildingElement(e)
-  }
+  private def produceBuildingElement: PartialFunction[XMLEvent, BuildingElement] =
+    xmlEventToPartialElement andThen {
+      e => BuildingElement(e)
+    }
 
   private def appendNonElement: PartialFunction[XMLEvent, NonElement] = {
     case e => NonElement(e, Seq(mostRecent) ++ reverseList :_*)
@@ -40,13 +41,13 @@ case class NonElement(mostRecent: XMLEvent, reverseList: XMLEvent*) extends XmlB
 }
 case object NoElement extends XmlBuilder {
   val process: EventToBuilder = {
-    case s: StartElement => BuildingElement(startElementToPartialElement.apply(s))
+    case s: StartElement => BuildingElement(startElementToPartialElement(s))
     case any => NonElement(any)
   }
 }
 
 case class FinalElement(elem: Elem) extends XmlBuilder {
-  val process: EventToBuilder = NoElement.process
+  def process: EventToBuilder = NoElement.process
 }
 
 
@@ -56,13 +57,13 @@ case class BuildingElement(element: Elem, ancestors: Elem*) extends XmlBuilder {
     includeChildren orElse buildChildElement orElse finaliseElement
 
   private def includeChildren: EventToBuilder = xmlEventToNonElement andThen {
-    case newChildNode =>
+    newChildNode =>
       val newElement = element.copy(child = element.child :+ newChildNode)
       BuildingElement(newElement, ancestors :_*)
   }
 
   private def buildChildElement: EventToBuilder = xmlEventToPartialElement andThen {
-    case newChildElement: Elem =>
+    newChildElement =>
       BuildingElement(newChildElement, Seq(element) ++ ancestors: _*)
   }
 

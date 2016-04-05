@@ -49,22 +49,22 @@ object XmlStreamElementProcessor {
  */
 case class XmlStreamElementProcessor[T](first: CollectorDefinition[T],
                                         rest: CollectorDefinition[T]*) {
-  val captures = List(first) ++ rest
+  def captures = first +: rest
 
   trait EventProcessor {
-    val process: PartialFunction[XMLEvent, EventProcessor]
+    def process: PartialFunction[XMLEvent, EventProcessor]
   }
 
   def apply(): EventProcessor = ProcessingStack()
   def initial: EventProcessor = ProcessingStack()
 
   case class Captured(stack: List[String], data: T) extends EventProcessor {
-    val process: PartialFunction[XMLEvent, EventProcessor] =
+    def process: PartialFunction[XMLEvent, EventProcessor] =
       ProcessingStack(stack.dropRight(1) :_*).process
   }
 
   case class Capturing(stack: List[String], state: XmlBuilder, callback: Elem => T) extends EventProcessor {
-    val process: PartialFunction[XMLEvent, EventProcessor] = 
+    def process: PartialFunction[XMLEvent, EventProcessor] =
       state.process andThen {
         case FinalElement(elem) => 
           Captured(stack, callback(elem))
@@ -74,7 +74,7 @@ case class XmlStreamElementProcessor[T](first: CollectorDefinition[T],
   }
   
   case class ProcessingStack(stack: String*) extends EventProcessor {
-    val process: PartialFunction[XMLEvent, EventProcessor] = {
+    def process: PartialFunction[XMLEvent, EventProcessor] = {
       case startElement: StartElement =>
         val newStack = stack ++ Seq(startElement.getName.getLocalPart)
         captures.toIterator.map(_.lift(newStack.toList)).collectFirst {

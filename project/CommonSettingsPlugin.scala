@@ -6,6 +6,6 @@ object CommonSettingsPlugin extends AutoPlugin {
   override def projectSettings = Seq(
     scalaVersion := "2.11.8",
     organization := "com.scalawilliam",
-    version := "0.2-SNAPSHOT"
+    version := "0.2"
   )
 }

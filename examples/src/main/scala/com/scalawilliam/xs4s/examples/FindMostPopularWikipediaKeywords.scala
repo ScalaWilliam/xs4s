@@ -1,16 +1,18 @@
 package com.scalawilliam.xs4s.examples
 
 import java.net.URL
+import javax.xml.stream.XMLInputFactory
 
 import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
 
 object FindMostPopularWikipediaKeywords extends App {
 
+  implicit val xmlInputfactory = XMLInputFactory.newInstance()
   // Wikipedia abstracts - 4GB
   val url = new URL("https://dumps.wikimedia.org/enwiki/20140903/enwiki-20140903-abstract.xml")
 
   // builder that extracts all the anchors
-  val anchorSplitter = XmlStreamElementProcessor.collectElements(_.last == "anchor")
+  val anchorSplitter = XmlStreamElementProcessor.collectElements { case l if l.last == "anchor" => identity }
 
   val anchors = {
     import XmlStreamElementProcessor.IteratorCreator._

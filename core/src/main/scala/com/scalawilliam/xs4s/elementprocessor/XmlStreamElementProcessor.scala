@@ -13,15 +13,13 @@ import scala.xml.Elem
 
 object XmlStreamElementProcessor {
 
-  lazy val xmlInputfactory = XMLInputFactory.newInstance()
-
   object IteratorCreator {
 
     implicit class addIteratorCreateorToBasicElementExtractorBuilder[T](beeb: XmlStreamElementProcessor[T]) {
-      def processInputStream(inputStream: InputStream): Iterator[T] = {
-        val reader = XmlStreamElementProcessor.xmlInputfactory.createXMLEventReader(inputStream)
+      def processInputStream(inputStream: InputStream)(implicit xMLInputFactory: XMLInputFactory): Iterator[T] = {
+        val reader = xMLInputFactory.createXMLEventReader(inputStream)
         import XmlEventIterator._
-        reader.scanLeft(beeb.initial)(_.process(_)).collect { case beeb.Captured(_, anchorElement) => anchorElement }
+        reader.scanLeft(beeb.EventProcessor.Scan.initial)(beeb.EventProcessor.Scan.scan).collect(beeb.EventProcessor.Scan.collect)
       }
     }
 
@@ -35,15 +33,8 @@ object XmlStreamElementProcessor {
     */
   type CollectorDefinition[T] = PartialFunction[List[String], Elem => T]
 
-  def collectElements(first: List[String] => Boolean, rest: (List[String] => Boolean)*) = {
-
-    XmlStreamElementProcessor(
-      { case list if first(list) => (e: Elem) => e },
-      rest.map(f => {
-        case list if f(list) => (e: Elem) => e
-      }: CollectorDefinition[Elem]
-      ): _*
-    )
+  def collectElements[T](pf: CollectorDefinition[T]) = {
+    XmlStreamElementProcessor(pf)
   }
 
 }
@@ -53,63 +44,73 @@ object XmlStreamElementProcessor {
   *
   * @tparam T Return type of these capture converters
   */
-case class XmlStreamElementProcessor[T](first: CollectorDefinition[T],
-                                        rest: CollectorDefinition[T]*) {
-  def captures = first +: rest
+case class XmlStreamElementProcessor[T](pf: CollectorDefinition[T]) {
 
-  trait EventProcessor {
+  def initial: EventProcessor = EventProcessor.initial
+
+  sealed trait EventProcessor {
     def process: PartialFunction[XMLEvent, EventProcessor]
   }
 
-  def apply(): EventProcessor = ProcessingStack()
+  object EventProcessor {
+    ep =>
 
-  def initial: EventProcessor = ProcessingStack()
+    object Scan {
+      def initial = ep.initial
 
-  case class Captured(stack: List[String], data: T) extends EventProcessor {
-    def process: PartialFunction[XMLEvent, EventProcessor] =
-      ProcessingStack(stack.dropRight(1): _*).process
-  }
+      def scan(eventProcessor: EventProcessor, xMLEvent: XMLEvent) = eventProcessor.process(xMLEvent)
 
-  case class Capturing(stack: List[String], state: XmlBuilder, callback: Elem => T) extends EventProcessor {
-    def process: PartialFunction[XMLEvent, EventProcessor] = {
-      case e => state.process(e) match {
-        case FinalElement(elem) =>
-          Captured(stack, callback(elem))
-        case other =>
-          Capturing(stack, other, callback)
+      def collect: PartialFunction[EventProcessor, T] = {
+        case Captured(_, e) => e
       }
     }
-  }
 
-  case class ProcessingStack(stack: String*) extends EventProcessor {
-    def process: PartialFunction[XMLEvent, EventProcessor] = {
-      case startElement: StartElement =>
-        val newStack = stack ++ Seq(startElement.getName.getLocalPart)
-        captures.toIterator.map(_.lift(newStack.toList)).collectFirst {
-          case Some(callback) =>
+    def initial: EventProcessor = ProcessingStack()
+
+    case class Captured(stack: List[String], data: T) extends EventProcessor {
+      def process: PartialFunction[XMLEvent, EventProcessor] =
+        ProcessingStack(stack.dropRight(1): _*).process
+    }
+
+    case class Capturing(stack: List[String], state: XmlBuilder, callback: Elem => T) extends EventProcessor {
+      def process: PartialFunction[XMLEvent, EventProcessor] = {
+        case e => state.process(e) match {
+          case FinalElement(elem) =>
+            Captured(stack, callback(elem))
+          case other =>
+            Capturing(stack, other, callback)
+        }
+      }
+    }
+
+    case class ProcessingStack(stack: String*) extends EventProcessor {
+      def process: PartialFunction[XMLEvent, EventProcessor] = {
+        case startElement: StartElement =>
+          val newStack = stack ++ Seq(startElement.getName.getLocalPart)
+          pf.lift.apply(newStack.toList).map { f =>
             Capturing(
               stack = newStack.toList,
               state = NoElement.process(startElement),
-              callback = callback
+              callback = f
             )
-        }.getOrElse {
-          ProcessingStack(newStack: _*)
-        }
-      case endElement: EndElement =>
-        val newStack = stack.dropRight(1)
-        if (newStack.isEmpty) {
-          FinishedProcessing
-        } else {
-          ProcessingStack(newStack: _*)
-        }
-      case other => this
+          }.getOrElse(ProcessingStack(newStack: _*))
+        case endElement: EndElement =>
+          val newStack = stack.dropRight(1)
+          if (newStack.isEmpty) {
+            FinishedProcessing
+          } else {
+            ProcessingStack(newStack: _*)
+          }
+        case other => this
+      }
     }
-  }
 
-  case object FinishedProcessing extends EventProcessor {
-    val process: PartialFunction[XMLEvent, EventProcessor] = {
-      case any => FinishedProcessing
+    case object FinishedProcessing extends EventProcessor {
+      val process: PartialFunction[XMLEvent, EventProcessor] = {
+        case any => FinishedProcessing
+      }
     }
+
   }
 
 }

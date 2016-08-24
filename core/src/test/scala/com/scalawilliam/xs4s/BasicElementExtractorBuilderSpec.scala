@@ -34,12 +34,13 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
         val streamer = inputFactory.createXMLEventReader(is)
         try {
           import XmlEventIterator._
-          val items = streamer.toIterator.scanLeft(instance.apply(): instance.EventProcessor)(_.process(_)).toList
-          val captures = items.collect { case instance.Captured(_, result) => result }
+          val items = streamer.toIterator.scanLeft(instance.EventProcessor.Scan.initial)(_.process(_)).toList
+          val captures = items.collect(instance.EventProcessor.Scan.collect)
           captures.toVector
         } finally streamer.close()
       } finally is.close()
     }
+
     implicit class builderProcess[T](i: XmlStreamElementProcessor[T]) {
       def materialize = process[T](i)
     }
@@ -58,9 +59,11 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
         )
     }
     "Match /items/item and /items/embedded/item" in {
-      XmlStreamElementProcessor(
-        { case List("items", "item") => (e: Elem) => e }, { case List("items", "embedded", "item") => (e: Elem) => e }
-      ).materialize.map(_.toString) should contain only(
+      XmlStreamElementProcessor {
+        case List("items", "item") => (e: Elem) => e
+        case List("items", "embedded", "item") => (e: Elem) => e
+      }
+        .materialize.map(_.toString) should contain only(
         "<item>Embedded</item>",
         "<item>General</item>",
         "<item><item>Nested</item></item>"

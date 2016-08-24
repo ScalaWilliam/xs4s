@@ -24,23 +24,23 @@ object Question12OfXTSpeedoXmarkTests extends App {
     case class InitialOpen(value: Double)
     case class Person(name: String, income: Double)
 
-    val splitter = XmlStreamElementProcessor(
-      {
-        case List("site", "open_auctions", "open_auction", "initial") =>
-          initialElement =>
-            Seq(InitialOpen(initialElement.text.toDouble))
-      }, {
-        case List("site", "people", "person") =>
-          personElement => for {
-            name <- personElement \ "name" map (_.text)
-            income = (personElement \ "profile" \ "@income").map(_.text.toDouble).headOption.getOrElse(0.0)
-          } yield Person(name, income)
-      }
-    )
+    val splitter = XmlStreamElementProcessor {
+      case List("site", "open_auctions", "open_auction", "initial") =>
+        initialElement =>
+          Seq(InitialOpen(initialElement.text.toDouble))
+      case List("site", "people", "person") =>
+        personElement => for {
+          name <- personElement \ "name" map (_.text)
+          income = (personElement \ "profile" \ "@income").map(_.text.toDouble).headOption.getOrElse(0.0)
+        } yield Person(name, income)
+    }
+
     import XmlEventIterator._
-    val collectedData = xmlEventReader.scanLeft(splitter.initial)(_.process(_)).collect {
-      case splitter.Captured(_, d) => d
-    }.toList.flatten
+    val collectedData = xmlEventReader
+      .scanLeft(splitter.EventProcessor.Scan.initial)(splitter.EventProcessor.Scan.scan)
+      .collect(splitter.EventProcessor.Scan.collect)
+      .toList.flatten
+
     <out>
       {for {
       Person(name, income) <- collectedData

@@ -1,15 +1,16 @@
 package com.scalawilliam.xs4s.examples
 
 import java.io.{File, FileInputStream}
+import javax.xml.stream.XMLInputFactory
 
 import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
 
 object ComputeBritainsRegionalMinimumParkingCosts extends App {
 
+  implicit val xmlInputfactory = XMLInputFactory.newInstance()
+
   // http://data.gov.uk/dataset/car-parks
-  val splitter = XmlStreamElementProcessor.collectElements {
-    _.last == "CarPark"
-  }
+  val splitter = XmlStreamElementProcessor.collectElements { case l if l.last == "CarPark" => identity }
 
   val regionMinCosts = for {
     i <- (1 to 8).par

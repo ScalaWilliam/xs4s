@@ -3,20 +3,20 @@ package com.scalawilliam.xs4s.examples
 import java.io.{File, FileInputStream}
 import javax.xml.stream.XMLInputFactory
 
-import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
+import com.scalawilliam.xs4s.XmlElementExtractor
 
 object ComputeBritainsRegionalMinimumParkingCosts extends App {
 
   implicit val xmlInputfactory = XMLInputFactory.newInstance()
 
   // http://data.gov.uk/dataset/car-parks
-  val splitter = XmlStreamElementProcessor.collectElements { case l if l.last == "CarPark" => identity }
+  val splitter = XmlElementExtractor.collectElements { case l if l.last == "CarPark" => identity }
 
   val regionMinCosts = for {
     i <- (1 to 8).par
     file = new File(s"downloads/carparks-data/CarParkData_$i.xml")
     carPark <- {
-      import XmlStreamElementProcessor.IteratorCreator._
+      import XmlElementExtractor.IteratorCreator._
       splitter.processInputStream(new FileInputStream(file))
     }
     regionName <- carPark \\ "RegionName" map (_.text)

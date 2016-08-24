@@ -1,21 +1,19 @@
-package com.scalawilliam.xs4s.elementprocessor
+package com.scalawilliam.xs4s
 
 import java.io.InputStream
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.{EndElement, StartElement, XMLEvent}
 
-import com.scalawilliam.xs4s.XmlEventIterator
-import com.scalawilliam.xs4s.elementbuilder.XmlBuilder
-import com.scalawilliam.xs4s.elementbuilder.XmlBuilder.{FinalElement, NoElement}
-import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor.CollectorDefinition
+import com.scalawilliam.xs4s.XmlElementBuilder.{FinalElement, NoElement}
+import com.scalawilliam.xs4s.XmlElementExtractor.CollectorDefinition
 
 import scala.xml.Elem
 
-object XmlStreamElementProcessor {
+object XmlElementExtractor {
 
   object IteratorCreator {
 
-    implicit class addIteratorCreateorToBasicElementExtractorBuilder[T](beeb: XmlStreamElementProcessor[T]) {
+    implicit class addIteratorCreateorToBasicElementExtractorBuilder[T](beeb: XmlElementExtractor[T]) {
       def processInputStream(inputStream: InputStream)(implicit xMLInputFactory: XMLInputFactory): Iterator[T] = {
         val reader = xMLInputFactory.createXMLEventReader(inputStream)
         import XmlEventIterator._
@@ -34,7 +32,7 @@ object XmlStreamElementProcessor {
   type CollectorDefinition[T] = PartialFunction[List[String], Elem => T]
 
   def collectElements[T](pf: CollectorDefinition[T]) = {
-    XmlStreamElementProcessor(pf)
+    XmlElementExtractor(pf)
   }
 
 }
@@ -44,7 +42,7 @@ object XmlStreamElementProcessor {
   *
   * @tparam T Return type of these capture converters
   */
-case class XmlStreamElementProcessor[T](pf: CollectorDefinition[T]) {
+case class XmlElementExtractor[T](pf: CollectorDefinition[T]) {
 
   def initial: EventProcessor = EventProcessor.initial
 
@@ -72,7 +70,7 @@ case class XmlStreamElementProcessor[T](pf: CollectorDefinition[T]) {
         ProcessingStack(stack.dropRight(1): _*).process
     }
 
-    case class Capturing(stack: List[String], state: XmlBuilder, callback: Elem => T) extends EventProcessor {
+    case class Capturing(stack: List[String], state: XmlElementBuilder, callback: Elem => T) extends EventProcessor {
       def process: PartialFunction[XMLEvent, EventProcessor] = {
         case e => state.process(e) match {
           case FinalElement(elem) =>

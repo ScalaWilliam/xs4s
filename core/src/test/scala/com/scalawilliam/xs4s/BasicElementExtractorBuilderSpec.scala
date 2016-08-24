@@ -2,8 +2,9 @@ package com.scalawilliam.xs4s
 
 import java.io.ByteArrayInputStream
 import javax.xml.stream.XMLInputFactory
-import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
+
 import org.scalatest.{Inside, Matchers, WordSpec}
+
 import scala.xml.Elem
 
 /**
@@ -28,7 +29,7 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
 
     val inputFactory = XMLInputFactory.newInstance()
 
-    def process[T](instance: XmlStreamElementProcessor[T]): Vector[T] = {
+    def process[T](instance: XmlElementExtractor[T]): Vector[T] = {
       val is = new ByteArrayInputStream(input.getBytes("UTF-8"))
       try {
         val streamer = inputFactory.createXMLEventReader(is)
@@ -41,16 +42,16 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
       } finally is.close()
     }
 
-    implicit class builderProcess[T](i: XmlStreamElementProcessor[T]) {
+    implicit class builderProcess[T](i: XmlElementExtractor[T]) {
       def materialize = process[T](i)
     }
 
     "Not match any elements" in {
-      val extractor = XmlStreamElementProcessor({ case List("fail") => (e: Elem) => e })
+      val extractor = XmlElementExtractor({ case List("fail") => (e: Elem) => e })
       extractor.materialize shouldBe empty
     }
     "Match /items/item" in {
-      val extractor = XmlStreamElementProcessor({
+      val extractor = XmlElementExtractor({
         case List("items", "item") => (e: Elem) => e
       })
       extractor.materialize.map(_.toString) should contain only(
@@ -59,7 +60,7 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
         )
     }
     "Match /items/item and /items/embedded/item" in {
-      XmlStreamElementProcessor {
+      XmlElementExtractor {
         case List("items", "item") => (e: Elem) => e
         case List("items", "embedded", "item") => (e: Elem) => e
       }

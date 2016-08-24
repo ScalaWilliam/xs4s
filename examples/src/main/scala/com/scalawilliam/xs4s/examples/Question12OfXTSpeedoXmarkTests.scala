@@ -1,9 +1,9 @@
 package com.scalawilliam.xs4s.examples
 
 import javax.xml.stream.XMLInputFactory
-import java.io.{InputStream, File, FileInputStream}
-import com.scalawilliam.xs4s.XmlEventIterator
-import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor
+import java.io.{File, FileInputStream, InputStream}
+
+import com.scalawilliam.xs4s.{XmlEventIterator, XmlElementExtractor}
 
 object Question12OfXTSpeedoXmarkTests extends App {
 
@@ -24,7 +24,7 @@ object Question12OfXTSpeedoXmarkTests extends App {
     case class InitialOpen(value: Double)
     case class Person(name: String, income: Double)
 
-    val splitter = XmlStreamElementProcessor {
+    val splitter = XmlElementExtractor {
       case List("site", "open_auctions", "open_auction", "initial") =>
         initialElement =>
           Seq(InitialOpen(initialElement.text.toDouble))

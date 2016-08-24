@@ -1,4 +1,4 @@
-package com.scalawilliam.xs4s.elementbuilder
+package com.scalawilliam.xs4s
 
 import javax.xml.stream.events.{StartElement, XMLEvent}
 
@@ -20,15 +20,28 @@ import scala.xml._
   * Then you can start the process all over again.
   *
   */
-sealed trait XmlBuilder {
-  protected type EventToBuilder = PartialFunction[XMLEvent, XmlBuilder]
+sealed trait XmlElementBuilder {
+  protected type EventToBuilder = PartialFunction[XMLEvent, XmlElementBuilder]
 
-  def process(xmlEvent: XMLEvent): XmlBuilder
+  def process(xmlEvent: XMLEvent): XmlElementBuilder
 }
 
-object XmlBuilder {
+object XmlElementBuilder {
 
-  case class NonElement(mostRecent: XMLEvent, reverseList: XMLEvent*) extends XmlBuilder {
+  def initial: XmlElementBuilder = NoElement
+
+  object Scan {
+    def initial: XmlElementBuilder = NoElement
+
+    def scan(xmlElementBuilder: XmlElementBuilder, xMLEvent: XMLEvent): XmlElementBuilder =
+      xmlElementBuilder.process(xMLEvent)
+
+    def collect: PartialFunction[XmlElementBuilder, Elem] = {
+      case FinalElement(e) => e
+    }
+  }
+
+  case class NonElement(mostRecent: XMLEvent, reverseList: XMLEvent*) extends XmlElementBuilder {
 
     def process(xMLEvent: XMLEvent) = (produceBuildingElement orElse appendNonElement).apply(xMLEvent)
 
@@ -43,18 +56,18 @@ object XmlBuilder {
 
   }
 
-  case object NoElement extends XmlBuilder {
+  case object NoElement extends XmlElementBuilder {
     def process(xMLEvent: XMLEvent) = xMLEvent match {
       case s: StartElement => BuildingElement(startElementToPartialElement(s))
       case any => NonElement(any)
     }
   }
 
-  case class FinalElement(elem: Elem) extends XmlBuilder {
+  case class FinalElement(elem: Elem) extends XmlElementBuilder {
     def process(xMLEvent: XMLEvent) = NoElement.process(xMLEvent)
   }
 
-  case class BuildingElement(element: Elem, ancestors: Elem*) extends XmlBuilder {
+  case class BuildingElement(element: Elem, ancestors: Elem*) extends XmlElementBuilder {
 
     def process(xMLEvent: XMLEvent) =
       (includeChildren orElse buildChildElement orElse finaliseElement).apply(xMLEvent)

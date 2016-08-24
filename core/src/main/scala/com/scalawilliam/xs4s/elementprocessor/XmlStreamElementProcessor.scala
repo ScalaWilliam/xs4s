@@ -5,7 +5,8 @@ import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.{EndElement, StartElement, XMLEvent}
 
 import com.scalawilliam.xs4s.XmlEventIterator
-import com.scalawilliam.xs4s.elementbuilder.{FinalElement, NoElement, XmlBuilder}
+import com.scalawilliam.xs4s.elementbuilder.XmlBuilder
+import com.scalawilliam.xs4s.elementbuilder.XmlBuilder.{FinalElement, NoElement}
 import com.scalawilliam.xs4s.elementprocessor.XmlStreamElementProcessor.CollectorDefinition
 
 import scala.xml.Elem
@@ -70,13 +71,14 @@ case class XmlStreamElementProcessor[T](first: CollectorDefinition[T],
   }
 
   case class Capturing(stack: List[String], state: XmlBuilder, callback: Elem => T) extends EventProcessor {
-    def process: PartialFunction[XMLEvent, EventProcessor] =
-      state.process andThen {
+    def process: PartialFunction[XMLEvent, EventProcessor] = {
+      case e => state.process(e) match {
         case FinalElement(elem) =>
           Captured(stack, callback(elem))
         case other =>
           Capturing(stack, other, callback)
       }
+    }
   }
 
   case class ProcessingStack(stack: String*) extends EventProcessor {

@@ -3,6 +3,8 @@ package com.scalawilliam.xs4s
 import javax.xml.stream.XMLEventReader
 import javax.xml.stream.events.{StartElement, XMLEvent}
 
+import com.scalawilliam.xs4s.elementbuilder.XmlBuilder.{FinalElement, NoElement}
+
 import scala.xml.Elem
 
 /**
@@ -75,19 +77,5 @@ package object elementbuilder {
     )
   }
 
-  private[elementbuilder] val xmlEventToPartialElement: PartialFunction[XMLEvent, Elem] = {
-    val getStart: PartialFunction[XMLEvent, StartElement] = {
-      case s: StartElement => s
-    }
-    getStart andThen startElementToPartialElement
-  }
-
-  private[elementbuilder] val xmlEventToNonElement: PartialFunction[XMLEvent, Node] = {
-    case ce if ce.isCharacters && ce.asCharacters().isCData => PCData(ce.asCharacters().getData)
-    case ce if ce.isCharacters => Text(ce.asCharacters().getData)
-    case pis: JavaProcessingInstruction =>
-      ProcInstr(pis.getTarget, pis.getData)
-    case cm: JavaComment => Comment(cm.getText)
-  }
 
 }

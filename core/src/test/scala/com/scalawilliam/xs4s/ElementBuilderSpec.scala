@@ -2,10 +2,15 @@ package com.scalawilliam.xs4s
 
 import java.io.ByteArrayInputStream
 import javax.xml.stream.XMLInputFactory
-import org.scalatest.{Inside, Inspectors, Matchers, WordSpec}
+
+import org.scalatest.Inside._
+import org.scalatest.Matchers._
+import org.scalatest.OptionValues._
+import org.scalatest.WordSpec
+
 import scala.xml._
 
-class ElementBuilderSpec extends WordSpec with Matchers with Inspectors with Inside {
+class ElementBuilderSpec extends WordSpec {
 
   /**
     * The purpose of ElementBuilder is to
@@ -28,8 +33,8 @@ class ElementBuilderSpec extends WordSpec with Matchers with Inspectors with Ins
       val is = new ByteArrayInputStream(input.getBytes("UTF-8"))
       val inputFactory = XMLInputFactory.newInstance()
       val streamer = inputFactory.createXMLEventReader(is)
-      import com.scalawilliam.xs4s.elementbuilder.eventReaderExtractors
-      val tree = streamer.blockingElement.next()
+      import com.scalawilliam.xs4s.Implicits._
+      val tree = streamer.buildElement.value
 
       inside(tree) {
         case Elem(prefix, label, attributes, scope, child@_*) =>

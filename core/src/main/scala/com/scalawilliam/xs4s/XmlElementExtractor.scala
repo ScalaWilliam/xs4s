@@ -5,34 +5,15 @@ import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.{EndElement, StartElement, XMLEvent}
 
 import com.scalawilliam.xs4s.XmlElementBuilder.{FinalElement, NoElement}
-import com.scalawilliam.xs4s.XmlElementExtractor.CollectorDefinition
 
 import scala.xml.Elem
 
 object XmlElementExtractor {
 
-  object IteratorCreator {
-
-    implicit class addIteratorCreateorToBasicElementExtractorBuilder[T](beeb: XmlElementExtractor[T]) {
-      def processInputStream(inputStream: InputStream)(implicit xMLInputFactory: XMLInputFactory): Iterator[T] = {
-        val reader = xMLInputFactory.createXMLEventReader(inputStream)
-        import XmlEventIterator._
-        reader.scanLeft(beeb.EventProcessor.Scan.initial)(beeb.EventProcessor.Scan.scan).collect(beeb.EventProcessor.Scan.collect)
-      }
+  def collectElements[T](p: List[String] => Boolean) = {
+    XmlElementExtractor {
+      case l if p(l) => identity
     }
-
-  }
-
-  /**
-    * Collector Definition: if the 'xpath' of the current position is equal to the
-    * the List[String] part of this parameter, then we begin capturing
-    * its element. Once that element is captured, we call _2(element)
-    * and change state to Captured().
-    */
-  type CollectorDefinition[T] = PartialFunction[List[String], Elem => T]
-
-  def collectElements[T](pf: CollectorDefinition[T]) = {
-    XmlElementExtractor(pf)
   }
 
 }
@@ -42,7 +23,7 @@ object XmlElementExtractor {
   *
   * @tparam T Return type of these capture converters
   */
-case class XmlElementExtractor[T](pf: CollectorDefinition[T]) {
+case class XmlElementExtractor[T](pf: PartialFunction[List[String], Elem => T]) {
 
   def initial: EventProcessor = EventProcessor.initial
 
@@ -50,18 +31,17 @@ case class XmlElementExtractor[T](pf: CollectorDefinition[T]) {
     def process: PartialFunction[XMLEvent, EventProcessor]
   }
 
-  object EventProcessor {
-    ep =>
+  object Scan extends Scanner[XMLEvent, EventProcessor, T] {
+    def initial = EventProcessor.initial
 
-    object Scan {
-      def initial = ep.initial
+    def scan(eventProcessor: EventProcessor, xMLEvent: XMLEvent) = eventProcessor.process(xMLEvent)
 
-      def scan(eventProcessor: EventProcessor, xMLEvent: XMLEvent) = eventProcessor.process(xMLEvent)
-
-      def collect: PartialFunction[EventProcessor, T] = {
-        case Captured(_, e) => e
-      }
+    def collect: PartialFunction[EventProcessor, T] = {
+      case EventProcessor.Captured(_, e) => e
     }
+  }
+
+  object EventProcessor {
 
     def initial: EventProcessor = ProcessingStack()
 

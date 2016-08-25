@@ -4,7 +4,7 @@ import java.io.ByteArrayInputStream
 import javax.xml.stream.XMLInputFactory
 
 import org.scalatest.{Inside, Matchers, WordSpec}
-
+import Implicits._
 import scala.xml.Elem
 
 /**
@@ -33,12 +33,8 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
       val is = new ByteArrayInputStream(input.getBytes("UTF-8"))
       try {
         val streamer = inputFactory.createXMLEventReader(is)
-        try {
-          import XmlEventIterator._
-          val items = streamer.toIterator.scanLeft(instance.EventProcessor.Scan.initial)(_.process(_)).toList
-          val captures = items.collect(instance.EventProcessor.Scan.collect)
-          captures.toVector
-        } finally streamer.close()
+        try streamer.toIterator.scanCollect(instance.Scan).toVector
+        finally streamer.close()
       } finally is.close()
     }
 

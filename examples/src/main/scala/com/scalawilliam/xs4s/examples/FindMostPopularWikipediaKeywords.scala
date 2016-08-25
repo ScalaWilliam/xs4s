@@ -4,19 +4,23 @@ import java.net.URL
 import javax.xml.stream.XMLInputFactory
 
 import com.scalawilliam.xs4s.XmlElementExtractor
+import com.scalawilliam.xs4s.Implicits._
 
 object FindMostPopularWikipediaKeywords extends App {
 
-  implicit val xmlInputfactory = XMLInputFactory.newInstance()
+  val xmlInputFactory = XMLInputFactory.newInstance()
   // Wikipedia abstracts - 4GB
   val url = new URL("https://dumps.wikimedia.org/enwiki/20140903/enwiki-20140903-abstract.xml")
+  val inputStream = url.openStream()
+  val xmlEventReader = xmlInputFactory.createXMLEventReader(inputStream)
 
   // builder that extracts all the anchors
-  val anchorSplitter = XmlElementExtractor.collectElements { case l if l.last == "anchor" => identity }
+  val anchorSplitter = XmlElementExtractor.collectElements(_.last == "anchor")
 
   val anchors = {
-    import XmlElementExtractor.IteratorCreator._
-    val anchorsStream = anchorSplitter.processInputStream(url.openStream())
+    val anchorsStream = xmlEventReader
+      .toIterator
+      .scanCollect(anchorSplitter.Scan)
     // add 'full' as an argument to go through the whole stream
     if (args contains "full") {
       anchorsStream
@@ -48,5 +52,6 @@ object FindMostPopularWikipediaKeywords extends App {
     result
   }
 
+  xmlEventReader.close()
 
 }

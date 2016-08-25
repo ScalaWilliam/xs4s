@@ -30,7 +30,7 @@ object XmlElementBuilder {
 
   def initial: XmlElementBuilder = NoElement
 
-  object Scan {
+  object Scanner extends Scanner[XMLEvent, XmlElementBuilder, Elem] {
     def initial: XmlElementBuilder = NoElement
 
     def scan(xmlElementBuilder: XmlElementBuilder, xMLEvent: XMLEvent): XmlElementBuilder =

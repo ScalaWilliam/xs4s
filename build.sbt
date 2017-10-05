@@ -1,3 +1,7 @@
+scalaVersion in ThisBuild := "2.12.3"
+organization in ThisBuild := "com.scalawilliam"
+version in ThisBuild := "0.4"
+
 lazy val root = (project in file("."))
   .aggregate(core, examples)
   .dependsOn(core, examples)
@@ -7,8 +11,8 @@ lazy val core = project.settings(
     "xmlunit" % "xmlunit" % "1.6",
     "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1",
     "org.compass-project" % "compass" % "2.2.0",
-    "org.scalatest" %% "scalatest" % "3.0.0" % "test",
-    "org.scala-lang.modules" %% "scala-xml" % "1.0.5"
+    "org.scalatest" %% "scalatest" % "3.0.4" % "test",
+    "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
   ),
   name := "xs4s",
   publishMavenStyle := true,

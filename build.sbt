@@ -1,6 +1,7 @@
-scalaVersion in ThisBuild := "2.12.3"
+scalaVersion in ThisBuild := "2.12.4"
+crossScalaVersions in ThisBuild := Seq("2.12.4", "2.11.12")
 organization in ThisBuild := "com.scalawilliam"
-version in ThisBuild := "0.4"
+version in ThisBuild := "0.5"
 
 lazy val root = (project in file("."))
   .aggregate(core, examples)
@@ -8,9 +9,8 @@ lazy val root = (project in file("."))
 
 lazy val core = project.settings(
   libraryDependencies ++= Seq(
-    "xmlunit" % "xmlunit" % "1.6",
+    "xmlunit" % "xmlunit" % "1.6" % "test",
     "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1",
-    "org.compass-project" % "compass" % "2.2.0",
     "org.scalatest" %% "scalatest" % "3.0.4" % "test",
     "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
   ),

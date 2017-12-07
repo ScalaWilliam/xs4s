@@ -56,9 +56,9 @@ credentials +=
               "PASSWORD")
 EOF
 
-$ sbt core/publishSigned
+$ sbt +core/publishSigned
 ```
 
-Then in https://oss.sonatype.org/ go to 'Staging Repositories', sort by date descending, select the latest package, click 'Close'.
+Then in https://oss.sonatype.org/ log in, go to 'Staging Repositories', sort by date descending, select the latest package, click 'Close'.
 
 ScalaWilliam <https://www.scalawilliam.com/>

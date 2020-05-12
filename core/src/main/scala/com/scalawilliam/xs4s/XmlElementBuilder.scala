@@ -5,21 +5,21 @@ import javax.xml.stream.events.{StartElement, XMLEvent}
 import scala.xml._
 
 /**
-  * Created on 12/07/2015.
-  */
+ * Created on 12/07/2015.
+ */
 
 /**
-  * XmlBuilder trait:
-  * Takes as input XMLEvent and produces XmlBuilder. There are two states that .process can lead to:
-  * BuildingElement(currentElement: Elem, ancestors: Elem*)
-  * FinalNode(elem: Elem)
-  *
-  * By passing in an event to BuildingElement you will get a new BuildingElement back
-  * We only expose FinalElement for you though. When you reach a FinalElement,
-  * Capture the output - this will be the fully formed tree.
-  * Then you can start the process all over again.
-  *
-  */
+ * XmlBuilder trait:
+ * Takes as input XMLEvent and produces XmlBuilder. There are two states that .process can lead to:
+ * BuildingElement(currentElement: Elem, ancestors: Elem*)
+ * FinalNode(elem: Elem)
+ *
+ * By passing in an event to BuildingElement you will get a new BuildingElement back
+ * We only expose FinalElement for you though. When you reach a FinalElement,
+ * Capture the output - this will be the fully formed tree.
+ * Then you can start the process all over again.
+ *
+ */
 sealed trait XmlElementBuilder {
   protected type EventToBuilder = PartialFunction[XMLEvent, XmlElementBuilder]
 
@@ -43,7 +43,7 @@ object XmlElementBuilder {
 
   case class NonElement(mostRecent: XMLEvent, reverseList: XMLEvent*) extends XmlElementBuilder {
 
-    def process(xMLEvent: XMLEvent) = (produceBuildingElement orElse appendNonElement).apply(xMLEvent)
+    def process(xMLEvent: XMLEvent): XmlElementBuilder = (produceBuildingElement orElse appendNonElement).apply(xMLEvent)
 
     private def produceBuildingElement: PartialFunction[XMLEvent, BuildingElement] =
       xmlEventToPartialElement andThen {
@@ -57,19 +57,19 @@ object XmlElementBuilder {
   }
 
   case object NoElement extends XmlElementBuilder {
-    def process(xMLEvent: XMLEvent) = xMLEvent match {
+    def process(xMLEvent: XMLEvent): XmlElementBuilder = xMLEvent match {
       case s: StartElement => BuildingElement(startElementToPartialElement(s))
       case any => NonElement(any)
     }
   }
 
   case class FinalElement(elem: Elem) extends XmlElementBuilder {
-    def process(xMLEvent: XMLEvent) = NoElement.process(xMLEvent)
+    def process(xMLEvent: XMLEvent): XmlElementBuilder = NoElement.process(xMLEvent)
   }
 
   case class BuildingElement(element: Elem, ancestors: Elem*) extends XmlElementBuilder {
 
-    def process(xMLEvent: XMLEvent) =
+    def process(xMLEvent: XMLEvent): XmlElementBuilder =
       (includeChildren orElse buildChildElement orElse finaliseElement).apply(xMLEvent)
 
     private def includeChildren: EventToBuilder = xmlEventToNonElement andThen {
@@ -134,7 +134,7 @@ object XmlElementBuilder {
     val getStart: PartialFunction[XMLEvent, StartElement] = {
       case s: StartElement => s
     }
-    getStart andThen startElementToPartialElement
+    getStart.andThen(se => startElementToPartialElement(se))
   }
 
   private val xmlEventToNonElement: PartialFunction[XMLEvent, Node] = {

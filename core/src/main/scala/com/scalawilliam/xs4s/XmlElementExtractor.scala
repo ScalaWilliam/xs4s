@@ -10,7 +10,7 @@ import scala.xml.Elem
 
 object XmlElementExtractor {
 
-  def collectElements[T](p: List[String] => Boolean) = {
+  def collectElements[T](p: List[String] => Boolean): XmlElementExtractor[Elem] = {
     XmlElementExtractor {
       case l if p(l) => identity
     }
@@ -19,10 +19,10 @@ object XmlElementExtractor {
 }
 
 /**
-  * See tests for examples.
-  *
-  * @tparam T Return type of these capture converters
-  */
+ * See tests for examples.
+ *
+ * @tparam T Return type of these capture converters
+ */
 case class XmlElementExtractor[T](pf: PartialFunction[List[String], Elem => T]) {
 
   def initial: EventProcessor = EventProcessor.initial
@@ -32,9 +32,9 @@ case class XmlElementExtractor[T](pf: PartialFunction[List[String], Elem => T]) 
   }
 
   object Scan extends Scanner[XMLEvent, EventProcessor, T] {
-    def initial = EventProcessor.initial
+    def initial: EventProcessor = EventProcessor.initial
 
-    def scan(eventProcessor: EventProcessor, xMLEvent: XMLEvent) = eventProcessor.process(xMLEvent)
+    def scan(eventProcessor: EventProcessor, xMLEvent: XMLEvent): EventProcessor = eventProcessor.process(xMLEvent)
 
     def collect: PartialFunction[EventProcessor, T] = {
       case EventProcessor.Captured(_, e) => e

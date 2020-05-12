@@ -32,11 +32,11 @@ trait Implicits extends Scanner.Implicits {
   }
 
   implicit class RichXMLEventReader(eventReader: XMLEventReader) extends scala.collection.Iterator[XMLEvent] {
-    def hasNext = eventReader.hasNext
+    def hasNext: Boolean = eventReader.hasNext
 
-    def next() = eventReader.nextEvent()
+    def next(): XMLEvent = eventReader.nextEvent()
 
-    def buildElement = eventReader.toIterator.buildElement
+    def buildElement: Option[Elem] = eventReader.toIterator.buildElement
   }
 
 }

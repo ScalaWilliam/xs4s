@@ -8,12 +8,12 @@ import Implicits._
 import scala.xml.Elem
 
 /**
-  * Purpose of element extractor is to
-  * pick apart specific elements from an XML stream as soon as they are matched
-  *
-  * This version concerns a simple List[ElementName] which does not bother with prefixes and the like
-  */
-class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Inside {
+ * Purpose of element extractor is to
+ * pick apart specific elements from an XML stream as soon as they are matched
+ *
+ * This version concerns a simple List[ElementName] which does not bother with prefixes and the like
+ */
+final class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Inside {
   "Basic element extractor" must {
 
     val input =
@@ -53,7 +53,7 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
       extractor.materialize.map(_.toString) should contain only(
         "<item>General</item>",
         "<item><item>Nested</item></item>"
-        )
+      )
     }
     "Match /items/item and /items/embedded/item" in {
       XmlElementExtractor {
@@ -64,7 +64,7 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
         "<item>Embedded</item>",
         "<item>General</item>",
         "<item><item>Nested</item></item>"
-        )
+      )
     }
   }
 

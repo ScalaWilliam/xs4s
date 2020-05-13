@@ -27,27 +27,34 @@ libraryDependencies += "com.scalawilliam" %% "xs4s" % "0.4"
 Then, 
 
 ```scala
+import fs2._
+import cats.effect._
 import xs4s._
+import scala.xml.Elem
 import xs4s.syntax._
+import javax.xml.stream.events.XMLEvent
+
 // extract all elements called 'anchor'
-val anchorElementExtractor: XmlElementExtractor[scala.xml.Elem] = XmlElementExtractor.filterElementsByName("anchor")
-val byteStream: fs2.Stream[cats.effect.IO, Byte] = ??? // could be for example, fs2.io.readInputStream(inputStream)
-val blocker: cats.effect.Blocker = ???
-val xmlEventStream: fs2.Stream[cats.effect.IO, javax.xml.stream.events.XMLEvent] = byteStream.through(byteStreamToXmlEventStream(blocker))
+val anchorElementExtractor: XmlElementExtractor[Elem] = XmlElementExtractor.filterElementsByName("anchor")
+val byteStream: Stream[IO, Byte] = ??? // could be for example, fs2.io.readInputStream(inputStream)
+val blocker: Blocker = ???
+val xmlEventStream: Stream[IO, XMLEvent] = byteStream.through(byteStreamToXmlEventStream(blocker))
 // collect your anchor Elements and do what you need
-val anchorElements: fs2.Stream[cats.effect.IO, scala.xml.Elem] = xmlEventStream.through(anchorElementExtractor.fs2Pipe)
-val anchorTexts: fs2.Stream[cats.effect.IO, String] = anchorElements.map(_.text)
+val anchorElements: Stream[IO, Elem] = xmlEventStream.through(anchorElementExtractor.fs2Pipe)
+val anchorTexts: Stream[IO, String] = anchorElements.map(_.text)
 ```
 
-Alternatively, for plain Scala, especially where you have legacy Java interaction:
+Alternatively, we have a plain-Scala API, especially where you have legacy Java interaction, or you feel uncomfortable with pure FP for now:
 
 ```scala
 import xs4s._
 import xs4s.syntax._
+import scala.xml.Elem
+import javax.xml.stream.XMLEventReader
 // extract all elements called 'anchor'
-val anchorElementExtractor: XmlElementExtractor[scala.xml.Elem] = XmlElementExtractor.filterElementsByName("anchor")
-val xmlEventReader: javax.xml.stream.XMLEventReader = ???
-val elements: Iterator[scala.xml.Elem] = xmlEventReader.extractXml(anchorElementExtractor) 
+val anchorElementExtractor: XmlElementExtractor[Elem] = XmlElementExtractor.filterElementsByName("anchor")
+val xmlEventReader: XMLEventReader = ??? // you can obtain one via XMLEventFactory
+val elements: Iterator[Elem] = xmlEventReader.extractXml(anchorElementExtractor) 
 val text: Iterator[String] = elements.map(_.text) 
 ``` 
 

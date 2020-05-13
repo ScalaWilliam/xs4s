@@ -1,13 +1,12 @@
-xs4s [![Maven Central](https://img.shields.io/maven-central/v/com.scalawilliam/xs4s_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/com.scalawilliam/xs4s_2.11) [![Build Status](https://travis-ci.org/ScalaWilliam/xs4s.svg?branch=master)](https://travis-ci.org/ScalaWilliam/xs4s) [![Join the chat at https://gitter.im/ScalaWilliam/xs4s](https://badges.gitter.im/ScalaWilliam/xs4s.svg)](https://gitter.im/ScalaWilliam/xs4s?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+XML Streaming for Scala (xs4s) [![Maven Central](https://img.shields.io/maven-central/v/com.scalawilliam/xs4s_2.11.svg)](https://maven-badges.herokuapp.com/maven-central/com.scalawilliam/xs4s_2.11) [![Build Status](https://travis-ci.org/ScalaWilliam/xs4s.svg?branch=master)](https://travis-ci.org/ScalaWilliam/xs4s) [![Join the chat at https://gitter.im/ScalaWilliam/xs4s](https://badges.gitter.im/ScalaWilliam/xs4s.svg)](https://gitter.im/ScalaWilliam/xs4s?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ====
 
+Ths library makes it easy for you to consume multi-gigabyte XML files in a streaming fashion - ie read and process a 4GB Wikipedia XML file,
+straight from the web, without running out of memory.
 
-
-XML Streaming for Scala
-
-This library shows how to use Scala to process XML streams.
-
-Scala's scalability makes it easy to do XML stream processing with StAX.
+It consumes events from the standard XML API (https://github.com/FasterXML/woodstox),
+gradually forms a partial tree, and based on a user-supplied function ("query"), it will 
+materialise that partial tree into a full tree, which will return to the user.
 
 Using the library
 ======
@@ -36,19 +35,15 @@ Running the examples
 
 ```bash
 $ git clone https://github.com/ScalaWilliam/xs4s.git
-
-$ sbt examples/run
+$ sbt examples/downloadCarparks "examples/runMain xs4s.examples.ComputeBritainsRegionalMinimumParkingCosts" 
+$ sbt examples/downloadXmark "examples/runMain xs4s.examples.Question12OfXTSpeedoXmarkTests"
+$ sbt "examples/runMain xs4s.examples.FindMostPopularWikipediaKeywords" 
 ```
-
-The code is lightweight, with ElementBuilder being the heaviest code as it converts
-StAX events into Scala XML classes.
-
-This can consume 100MB files or 4GB files without any problems. And it does it fast. It converts XML streams into Scala XML trees on demand, which you can then query from.
 
 Publishing
 ======
 ``` bash
-$ cat <<EOF > ~/.sbt/0.13/sonatype.sbt
+$ cat <<EOF > ~/.sbt/1.0/sonatype.sbt
 credentials +=
   Credentials("Sonatype Nexus Repository Manager",
               "oss.sonatype.org",

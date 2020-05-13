@@ -1,19 +1,24 @@
-package com.scalawilliam.xs4s
+package xs4s
+
+import xs4s.syntax._
 
 import java.io.ByteArrayInputStream
-import javax.xml.stream.XMLInputFactory
 
+import javax.xml.stream.XMLInputFactory
 import org.scalatest.{Inside, Matchers, WordSpec}
-import Implicits._
+
 import scala.xml.Elem
 
 /**
- * Purpose of element extractor is to
- * pick apart specific elements from an XML stream as soon as they are matched
- *
- * This version concerns a simple List[ElementName] which does not bother with prefixes and the like
- */
-final class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Inside {
+  * Purpose of element extractor is to
+  * pick apart specific elements from an XML stream as soon as they are matched
+  *
+  * This version concerns a simple List[ElementName] which does not bother with prefixes and the like
+  */
+final class BasicElementExtractorBuilderSpec
+    extends WordSpec
+    with Matchers
+    with Inside {
   "Basic element extractor" must {
 
     val input =
@@ -43,24 +48,38 @@ final class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with
     }
 
     "Not match any elements" in {
-      val extractor = XmlElementExtractor.fromPartialFunction { case List("fail") => (e: Elem) => e }
+      val extractor =
+        XmlElementExtractor.collectWithPartialFunctionOfElementNames {
+          case List("fail") =>
+            (e: Elem) =>
+              e
+        }
       extractor.materialize shouldBe empty
     }
     "Match /items/item" in {
-      val extractor = XmlElementExtractor.fromPartialFunction {
-        case List("items", "item") => (e: Elem) => e
-      }
-      extractor.materialize.map(_.toString) should contain only(
+      val extractor =
+        XmlElementExtractor.collectWithPartialFunctionOfElementNames {
+          case List("items", "item") =>
+            (e: Elem) =>
+              e
+        }
+      extractor.materialize.map(_.toString) should contain only (
         "<item>General</item>",
         "<item><item>Nested</item></item>"
       )
     }
     "Match /items/item and /items/embedded/item" in {
-      XmlElementExtractor.fromPartialFunction {
-        case List("items", "item") => (e: Elem) => e
-        case List("items", "embedded", "item") => (e: Elem) => e
-      }
-        .materialize.map(_.toString) should contain only(
+      XmlElementExtractor
+        .collectWithPartialFunctionOfElementNames {
+          case List("items", "item") =>
+            (e: Elem) =>
+              e
+          case List("items", "embedded", "item") =>
+            (e: Elem) =>
+              e
+        }
+        .materialize
+        .map(_.toString) should contain only (
         "<item>Embedded</item>",
         "<item>General</item>",
         "<item><item>Nested</item></item>"

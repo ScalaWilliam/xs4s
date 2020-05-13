@@ -1,3 +1,5 @@
+name := "xs4s-root"
+
 scalaVersion in ThisBuild := "2.12.11"
 crossScalaVersions in ThisBuild := Seq("2.12.11", "2.13.2")
 organization in ThisBuild := "com.scalawilliam"
@@ -12,7 +14,9 @@ lazy val core = project.settings(
     "xmlunit" % "xmlunit" % "1.6" % "test",
     "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1",
     "org.scalatest" %% "scalatest" % "3.1.2" % "test",
-    "org.scala-lang.modules" %% "scala-xml" % "1.3.0"
+    "org.scala-lang.modules" %% "scala-xml" % "1.3.0",
+    "co.fs2" %% "fs2-core" % "2.2.1" % "provided",
+    "co.fs2" %% "fs2-io" % "2.2.1" % "provided",
   ),
   name := "xs4s",
   publishMavenStyle := true,
@@ -58,8 +62,6 @@ def download(source: sbt.URL, target: sbt.File): Int = {
 }
 
 lazy val examples = project.dependsOn(core).settings(
-  run := (run in Runtime) dependsOn(downloadCarparks, downloadXmark),
-  runMain := (runMain in Runtime) dependsOn(downloadCarparks, downloadXmark),
   downloadCarparks := {
     import sbt._
     import IO._
@@ -72,9 +74,13 @@ lazy val examples = project.dependsOn(core).settings(
     if (!file("downloads/xmark4.xml").exists()) {
       download(url("https://github.com/Saxonica/XT-Speedo/blob/master/data/xmark-tests/xmark4.xml?raw=true"), file("downloads/xmark4.xml"))
     }
-  }
+  },
+  libraryDependencies += "co.fs2" %% "fs2-core" % "2.2.1",
+  libraryDependencies += "co.fs2" %% "fs2-io" % "2.2.1"
 )
 
 lazy val downloadCarparks = taskKey[Unit]("Download carparks task")
 
 lazy val downloadXmark = taskKey[Unit]("Download speedo")
+
+Global / onChangedBuildSource := ReloadOnSourceChanges

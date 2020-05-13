@@ -39,24 +39,24 @@ final class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with
     }
 
     implicit class builderProcess[T](i: XmlElementExtractor[T]) {
-      def materialize = process[T](i)
+      def materialize: Vector[T] = process[T](i)
     }
 
     "Not match any elements" in {
-      val extractor = XmlElementExtractor({ case List("fail") => (e: Elem) => e })
+      val extractor = XmlElementExtractor.fromPartialFunction { case List("fail") => (e: Elem) => e }
       extractor.materialize shouldBe empty
     }
     "Match /items/item" in {
-      val extractor = XmlElementExtractor({
+      val extractor = XmlElementExtractor.fromPartialFunction {
         case List("items", "item") => (e: Elem) => e
-      })
+      }
       extractor.materialize.map(_.toString) should contain only(
         "<item>General</item>",
         "<item><item>Nested</item></item>"
       )
     }
     "Match /items/item and /items/embedded/item" in {
-      XmlElementExtractor {
+      XmlElementExtractor.fromPartialFunction {
         case List("items", "item") => (e: Elem) => e
         case List("items", "embedded", "item") => (e: Elem) => e
       }

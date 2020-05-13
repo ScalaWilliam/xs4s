@@ -1,14 +1,15 @@
 package com.scalawilliam.xs4s
 
 /**
-  * Created by me on 25/08/2016.
-  */
+ * A set of functions that allow a streaming scanLeft,
+ * where the collection extracts the final result
+ */
 trait Scanner[In, State, Out] {
   def initial: State
 
   def scan(state: State, element: In): State
 
-  def collect: PartialFunction[State, Out]
+  def collect(state: State): Option[Out]
 }
 
 object Scanner {
@@ -21,14 +22,12 @@ object Scanner {
       }
 
       def scanCollect[S, O](scanner: Scanner[T, S, O]): Iterator[O] = {
-        iterator.scanLeft(scanner.initial)(scanner.scan).collect(scanner.collect)
+        iterator.scanLeft(scanner.initial)(scanner.scan).collect(Function.unlift(scanner.collect))
       }
     }
 
   }
 
-  object Implicits extends Implicits {
-
-  }
+  object Implicits extends Implicits
 
 }

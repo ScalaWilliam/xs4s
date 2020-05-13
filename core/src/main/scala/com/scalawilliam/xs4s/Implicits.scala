@@ -2,30 +2,17 @@ package com.scalawilliam.xs4s
 
 import javax.xml.stream.XMLEventReader
 import javax.xml.stream.events.XMLEvent
-
 import scala.xml.Elem
 
 /**
-  * Created by me on 25/08/2016.
-  */
+ * Implicit utilities for dealing with XMLEventReader, Iterators and Scanners.
+ */
 trait Implicits extends Scanner.Implicits {
 
-  implicit class NodeSeqExtensions(nodeSeq: scala.xml.NodeSeq) {
-    def ===(hasValue: String): Boolean =
-      nodeSeq.text == hasValue
-
-    def !==(notValue: String): Boolean =
-      nodeSeq.text != notValue
-  }
-
   implicit class RichXMLEventIterator(input: Iterator[XMLEvent]) {
-    def buildXml: Iterator[XmlElementBuilder] = {
-      input.scan(XmlElementBuilder.Scanner)
-    }
-
     /**
-      * Note this is unsafe. If the iterator is infinite then we'll never return.
-      */
+     * We must assume the input iterator is finite
+     */
     def buildElement: Option[Elem] = {
       input.scanCollect(XmlElementBuilder.Scanner).toStream.lastOption
     }

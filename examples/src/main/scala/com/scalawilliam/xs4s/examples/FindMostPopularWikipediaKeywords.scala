@@ -15,14 +15,14 @@ object FindMostPopularWikipediaKeywords extends App {
   val xmlEventReader = xmlInputFactory.createXMLEventReader(inputStream)
 
   // builder that extracts all the anchors
-  val anchorSplitter = XmlElementExtractor.collectElements(_.last == "anchor")
+  val anchorSplitter = XmlElementExtractor.collectElementsByName("anchor")
 
   val anchors = {
     val anchorsStream = xmlEventReader
       .toIterator
       .scanCollect(anchorSplitter.Scan)
     // add 'full' as an argument to go through the whole stream
-    if (args contains "full") {
+    if (args.contains("full")) {
       anchorsStream
     } else {
       anchorsStream take 500

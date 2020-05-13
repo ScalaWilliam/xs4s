@@ -1,7 +1,5 @@
 package com.scalawilliam.xs4s
 
-import java.io.InputStream
-import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.{EndElement, StartElement, XMLEvent}
 
 import com.scalawilliam.xs4s.XmlElementBuilder.{FinalElement, NoElement}
@@ -10,10 +8,18 @@ import scala.xml.Elem
 
 object XmlElementExtractor {
 
-  def collectElements[T](p: List[String] => Boolean): XmlElementExtractor[Elem] = {
-    XmlElementExtractor {
+  def collectElementsByName(name: String): XmlElementExtractor[Elem] = {
+    collectElementsPredicate(l => l.lastOption.contains(name))
+  }
+
+  def collectElementsPredicate[T](p: List[String] => Boolean): XmlElementExtractor[Elem] = {
+    fromPartialFunction {
       case l if p(l) => identity
     }
+  }
+
+  def fromPartialFunction[T](pf: PartialFunction[List[String], Elem => T]): XmlElementExtractor[T] = {
+    XmlElementExtractor[T](l => pf.lift(l))
   }
 
 }
@@ -23,20 +29,20 @@ object XmlElementExtractor {
  *
  * @tparam T Return type of these capture converters
  */
-case class XmlElementExtractor[T](pf: PartialFunction[List[String], Elem => T]) {
+final case class XmlElementExtractor[T](extractionFunction: List[String] => Option[Elem => T]) {
 
   def initial: EventProcessor = EventProcessor.initial
 
   sealed trait EventProcessor {
-    def process: PartialFunction[XMLEvent, EventProcessor]
+    def process(xmlElemv: XMLEvent): Option[EventProcessor]
   }
 
   object Scan extends Scanner[XMLEvent, EventProcessor, T] {
     def initial: EventProcessor = EventProcessor.initial
 
-    def scan(eventProcessor: EventProcessor, xMLEvent: XMLEvent): EventProcessor = eventProcessor.process(xMLEvent)
+    def scan(eventProcessor: EventProcessor, xMLEvent: XMLEvent): EventProcessor = eventProcessor.process(xMLEvent).getOrElse(eventProcessor)
 
-    def collect: PartialFunction[EventProcessor, T] = {
+    def collect(eventProcessor: EventProcessor): Option[T] = PartialFunction.condOpt(eventProcessor) {
       case EventProcessor.Captured(_, e) => e
     }
   }
@@ -45,14 +51,14 @@ case class XmlElementExtractor[T](pf: PartialFunction[List[String], Elem => T]) 
 
     def initial: EventProcessor = ProcessingStack()
 
-    case class Captured(stack: List[String], data: T) extends EventProcessor {
-      def process: PartialFunction[XMLEvent, EventProcessor] =
-        ProcessingStack(stack.dropRight(1): _*).process
+    final case class Captured(stack: List[String], data: T) extends EventProcessor {
+      def process(xmlEvent: XMLEvent): Option[EventProcessor] =
+        ProcessingStack(stack.dropRight(1): _*).process(xmlEvent)
     }
 
-    case class Capturing(stack: List[String], state: XmlElementBuilder, callback: Elem => T) extends EventProcessor {
-      def process: PartialFunction[XMLEvent, EventProcessor] = {
-        case e => state.process(e) match {
+    final case class Capturing(stack: List[String], state: XmlElementBuilder, callback: Elem => T) extends EventProcessor {
+      def process(xmlEvent: XMLEvent): Option[EventProcessor] = Option {
+        state.process(xmlEvent) match {
           case FinalElement(elem) =>
             Captured(stack, callback(elem))
           case other =>
@@ -61,11 +67,11 @@ case class XmlElementExtractor[T](pf: PartialFunction[List[String], Elem => T]) 
       }
     }
 
-    case class ProcessingStack(stack: String*) extends EventProcessor {
-      def process: PartialFunction[XMLEvent, EventProcessor] = {
+    final case class ProcessingStack(stack: String*) extends EventProcessor {
+      def process(xmlEvent: XMLEvent): Option[EventProcessor] = PartialFunction.condOpt(xmlEvent) {
         case startElement: StartElement =>
           val newStack = stack ++ Seq(startElement.getName.getLocalPart)
-          pf.lift.apply(newStack.toList).map { f =>
+          extractionFunction.apply(newStack.toList).map { f =>
             Capturing(
               stack = newStack.toList,
               state = NoElement.process(startElement),
@@ -84,9 +90,7 @@ case class XmlElementExtractor[T](pf: PartialFunction[List[String], Elem => T]) 
     }
 
     case object FinishedProcessing extends EventProcessor {
-      val process: PartialFunction[XMLEvent, EventProcessor] = {
-        case any => FinishedProcessing
-      }
+      override def process(xmlElemv: XMLEvent): Option[EventProcessor] = Some(FinishedProcessing)
     }
 
   }

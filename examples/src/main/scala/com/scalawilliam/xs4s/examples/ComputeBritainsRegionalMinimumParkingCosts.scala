@@ -11,7 +11,7 @@ object ComputeBritainsRegionalMinimumParkingCosts extends App {
   val xmlInputfactory = XMLInputFactory.newInstance()
 
   // http://data.gov.uk/dataset/car-parks
-  val splitter = XmlElementExtractor.collectElements(_.last == "CarPark")
+  val splitter = XmlElementExtractor.collectElementsByName("CarPark")
 
   val regionMinCosts = (1 to 8).flatMap { i =>
     val fileReader = new FileReader(s"downloads/carparks-data/CarParkData_$i.xml")

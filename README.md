@@ -8,6 +8,8 @@ It consumes events from the standard XML API (https://github.com/FasterXML/woods
 gradually forms a partial tree, and based on a user-supplied function ("query"), it will 
 materialise that partial tree into a full tree, which will return to the user.
 
+FS2 compatibility is included (Functional Streams for Scala).
+
 Using the library
 ======
 
@@ -22,38 +24,43 @@ libraryDependencies += "com.scalawilliam" %% "xs4s" % "0.4"
 // resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
-Examples
+Then, 
+
+```scala
+import xs4s._
+import xs4s.syntax._
+// extract all elements called 'anchor'
+val anchorElementExtractor: XmlElementExtractor[scala.xml.Elem] = XmlElementExtractor.filterElementsByName("anchor")
+val byteStream: fs2.Stream[cats.effect.IO, Byte] = ??? // could be for example, fs2.io.readInputStream(inputStream)
+val blocker: cats.effect.Blocker = ???
+val xmlEventStream: fs2.Stream[cats.effect.IO, javax.xml.stream.events.XMLEvent] = byteStream.through(byteStreamToXmlEventStream(blocker))
+// collect your anchor Elements and do what you need
+val anchorElements: fs2.Stream[cats.effect.IO, scala.xml.Elem] = xmlEventStream.through(anchorElementExtractor.fs2Pipe)
+val anchorTexts: fs2.Stream[cats.effect.IO, String] = anchorElements.map(_.text)
+```
+
+Alternatively, for plain Scala, especially where you have legacy Java interaction:
+
+```scala
+import xs4s._
+import xs4s.syntax._
+// extract all elements called 'anchor'
+val anchorElementExtractor: XmlElementExtractor[scala.xml.Elem] = XmlElementExtractor.filterElementsByName("anchor")
+val xmlEventReader: javax.xml.stream.XMLEventReader = ???
+val elements: Iterator[scala.xml.Elem] = xmlEventReader.extractXml(anchorElementExtractor) 
+val text: Iterator[String] = elements.map(_.text) 
+``` 
+
+Example
 ======
 
-* ComputeBritainsRegionalMinimumParkingCosts
-* FindMostPopularWikipediaKeywords
-* Question12OfXTSpeedoXmarkTests
-
-Running the examples
-======
-
+The main example is in [FindMostPopularWikipediaKeywordsFs2App](example/src/main/scala/xs4s/example/FindMostPopularWikipediaKeywordsFs2App.scala).
+There is also a plain Scala example (using `Iterator`) in [FindMostPopularWikipediaKeywordsPlainScalaApp](example/src/main/scala/xs4s/example/FindMostPopularWikipediaKeywordsPlainScalaApp.scala).
 
 ```bash
 $ git clone https://github.com/ScalaWilliam/xs4s.git
-$ sbt examples/downloadCarparks "examples/runMain xs4s.examples.ComputeBritainsRegionalMinimumParkingCosts" 
-$ sbt examples/downloadXmark "examples/runMain xs4s.examples.Question12OfXTSpeedoXmarkTests"
-$ sbt "examples/runMain xs4s.examples.FindMostPopularWikipediaKeywords" 
+$ sbt "examples/runMain xs4s.example.FindMostPopularWikipediaKeywordsFs2App" 
+$ sbt "examples/runMain xs4s.example.FindMostPopularWikipediaKeywordsPlainScalaApp" 
 ```
-
-Publishing
-======
-``` bash
-$ cat <<EOF > ~/.sbt/1.0/sonatype.sbt
-credentials +=
-  Credentials("Sonatype Nexus Repository Manager",
-              "oss.sonatype.org",
-              "USERNAME",
-              "PASSWORD")
-EOF
-
-$ sbt +core/publishSigned
-```
-
-Then in https://oss.sonatype.org/ log in, go to 'Staging Repositories', sort by date descending, select the latest package, click 'Close' and then 'Release'.
 
 ScalaWilliam <https://www.scalawilliam.com/>

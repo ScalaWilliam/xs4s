@@ -11,8 +11,12 @@ package object xs4s {
 
   def byteStreamToXmlEventStream[F[_]: ConcurrentEffect: ContextShift](
       blocker: Blocker)(implicit F: Sync[F]): fs2.Pipe[F, Byte, XMLEvent] =
+    byteStreamToXmlEventStream(XMLInputFactory.newInstance(), blocker)
+
+  def byteStreamToXmlEventStream[F[_]: ConcurrentEffect: ContextShift](
+      xmlInputFactory: XMLInputFactory,
+      blocker: Blocker)(implicit F: Sync[F]): fs2.Pipe[F, Byte, XMLEvent] =
     s => {
-      val xmlInputFactory = XMLInputFactory.newInstance()
       fs2.Stream
         .resource(fs2.io.toInputStreamResource(s))
         .flatMap(
@@ -59,6 +63,9 @@ package object xs4s {
       def next(): XMLEvent = eventReader.nextEvent()
 
       def buildElement: Option[Elem] = eventReader.toIterator.buildElement
+
+      def extractXml[E](xmlElementExtractor: XmlElementExtractor[E]): Iterator[E] =
+        this.scanCollect(xmlElementExtractor.Scan)
     }
 
     implicit class RichIterator[T](iterator: Iterator[T]) {
@@ -82,9 +89,13 @@ package object xs4s {
                 .apply[XMLEvent](blocker, reader.toIterator))
     }
 
-    implicit class RichScanner[I, S, O](scanner: Scanner[I, S, O]) {
-      def toFs2Pipe[F[_]]: Pipe[F, I, O] =
-        _.scan(scanner.initial)(scanner.scan).map(scanner.collect).unNone
+    implicit class RichXmlElementExtractor[O](
+        xmlElementExtractor: XmlElementExtractor[O]) {
+
+      import xmlElementExtractor.Scan
+
+      def fs2Pipe[F[_]]: Pipe[F, XMLEvent, O] =
+        _.scan(Scan.initial)(Scan.scan).map(Scan.collect).unNone
     }
 
   }

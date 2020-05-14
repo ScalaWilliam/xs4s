@@ -7,7 +7,7 @@ jdk:
   - oraclejdk11
 
 script:
-  - sbt test
+  - sbt test "examples/runMain xs4s.example.FindMostPopularWikipediaKeywordsFs2App" "examples/runMain xs4s.example.FindMostPopularWikipediaKeywordsPlainScalaApp" 
 
 cache:
   directories:

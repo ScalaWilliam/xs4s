@@ -1,7 +1,6 @@
 package xs4s.example
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
-import fs2.Pipe
 import cats.implicits._
 import javax.xml.stream.XMLInputFactory
 import xs4s._
@@ -14,11 +13,11 @@ object FindMostPopularWikipediaKeywordsFs2App extends IOApp {
       wikipediaXmlBytes(blocker)
         .through(
           byteStreamToXmlEventStream(XMLInputFactory.newInstance(), blocker))
-        .through(anchorExtractor.fs2Pipe)
+        .through(anchorExtractor.pipeThrowError)
         .through(stream => // by default, get a sub-set of the stream
           if (args.contains("full")) stream else stream.take(500))
         .map(_.text)
-        .through(countTopItems)
+        .through(countTopItemsFs2)
         .evalMap(list =>
           list.traverse_ {
             case (elem, count) => IO.delay(println(count, elem))

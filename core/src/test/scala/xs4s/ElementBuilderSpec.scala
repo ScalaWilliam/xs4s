@@ -32,7 +32,10 @@ final class ElementBuilderSpec extends AnyWordSpec {
       val is           = new ByteArrayInputStream(input.getBytes("UTF-8"))
       val inputFactory = XMLInputFactory.newInstance()
       val streamer     = inputFactory.createXMLEventReader(is)
-      val tree         = streamer.buildElement.value
+      val tree = streamer.toIterator
+        .through(ScalaXmlElemBuilder.scannerThrowingOnError)
+        .lastOption
+        .value
 
       inside(tree) {
         case Elem(prefix, label, attributes, scope, child @ _*) =>

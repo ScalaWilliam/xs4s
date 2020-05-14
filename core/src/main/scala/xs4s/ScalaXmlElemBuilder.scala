@@ -1,25 +1,28 @@
 package xs4s
 
 import javax.xml.stream.events.{StartElement, XMLEvent}
-import javax.xml.stream.events.{
-  Attribute => JavaAttribute,
-  Comment => JavaComment,
-  Namespace => JavaNamespace,
-  ProcessingInstruction => JavaProcessingInstruction
-}
+import javax.xml.stream.events.{Attribute => JavaAttribute, Comment => JavaComment, Namespace => JavaNamespace, ProcessingInstruction => JavaProcessingInstruction}
+import xs4s.ScalaXmlElemBuilder.{CannotProcessEvent, FinalElemScala}
+import xs4s.generic.Scanner
+
 import scala.xml._
 
-/**
-  * [[ScalaXmlElemBuilder]] rebuilds a [[scala.xml.Elem]] tree from [[javax.xml.stream.events.XMLEvent]] events.
-  * The element is fully rebuilt when the builder becomes [[xs4s.ScalaXmlElemBuilder.FinalElemScala]].
-  */
-sealed trait ScalaXmlElemBuilder {
-  def process(xmlEvent: XMLEvent): ScalaXmlElemBuilder
-}
+private[xs4s] object ScalaXmlElemBuilder {
 
-object ScalaXmlElemBuilder {
+  def initial: ScalaXmlElemBuilder = noElem
 
-  def initial: ScalaXmlElemBuilder = NoElem$Scala
+  def scannerThrowingOnError: Scanner[XMLEvent, ScalaXmlElemBuilder, Elem] =
+    Scanner.of(noElem)((state, event: XMLEvent) => state.process(event))(
+      _.fold(e => Some(e), whenError = err => throw err, _ => None))
+
+  def scannerEitherOnError
+    : Scanner[XMLEvent, ScalaXmlElemBuilder, Either[Exception, Elem]] =
+    Scanner.of(noElem)((state, event: XMLEvent) => state.process(event))(
+      _.fold(e => Some(Right(e)),
+             whenError = err => Some(Left(err)),
+             _ => None))
+
+  private def noElem: ScalaXmlElemBuilder = NoElem
 
   private def xmlEventToPartialElement(xmlEvent: XMLEvent): Option[Elem] =
     PartialFunction.condOpt(xmlEvent) {
@@ -75,11 +78,12 @@ object ScalaXmlElemBuilder {
       case cm: JavaComment => scala.xml.Comment(cm.getText)
     }
 
-  trait EventToBuilder {
+  private trait EventToBuilder {
     def convert(xmlEvent: XMLEvent): Option[ScalaXmlElemBuilder]
   }
 
-  final case class NonElemScala(mostRecent: XMLEvent, reverseList: XMLEvent*)
+  private final case class NonElemScala(mostRecent: XMLEvent,
+                                        reverseList: XMLEvent*)
       extends ScalaXmlElemBuilder {
 
     def process(xmlEvent: XMLEvent): BuildingElemScala =
@@ -93,74 +97,82 @@ object ScalaXmlElemBuilder {
 
   }
 
-  final case class FinalElemScala(elem: Elem) extends ScalaXmlElemBuilder {
-    def process(xMLEvent: XMLEvent): ScalaXmlElemBuilder =
-      NoElem$Scala.process(xMLEvent)
+  private final case class CannotProcessEvent(currentState: BuildingElemScala,
+                                              xmlEvent: XMLEvent)
+      extends Exception
+      with ScalaXmlElemBuilder {
+    override def getMessage: String =
+      s"Cannot process event ${xmlEvent} due to invalid sequence. Tree was: ${currentState.elementsTopDown
+        .map((e: Elem) => e.label)
+        .mkString("> ")}"
+    override def process(xmlEvent: XMLEvent): ScalaXmlElemBuilder = this
   }
 
-  import javax.xml.stream.events.{
-    Attribute => JavaAttribute,
-    Comment => JavaComment,
-    Namespace => JavaNamespace,
-    ProcessingInstruction => JavaProcessingInstruction
+  private final case class FinalElemScala(elem: Elem)
+      extends ScalaXmlElemBuilder {
+    def process(xMLEvent: XMLEvent): ScalaXmlElemBuilder =
+      NoElem.process(xMLEvent)
   }
 
   import scala.xml._
 
-  final case class BuildingElemScala(element: Elem, ancestors: Elem*)
+  private final case class BuildingElemScala(element: Elem, ancestors: Elem*)
       extends ScalaXmlElemBuilder {
+    def elementsTopDown: List[Elem] = (element :: ancestors.toList).reverse
 
-    def process(xMLEvent: XMLEvent): ScalaXmlElemBuilder =
-      includeChildren
-        .convert(xMLEvent)
-        .orElse(buildChildElement.convert(xMLEvent))
-        .orElse(finaliseElement.convert(xMLEvent))
-        .getOrElse(sys.error("Invalid state"))
-
-    private def includeChildren: EventToBuilder =
-      event =>
-        xmlEventToNonElement(event).map { newChildNode =>
+    def process(xmlEvent: XMLEvent): ScalaXmlElemBuilder = {
+      def includeChildren: Option[BuildingElemScala] =
+        xmlEventToNonElement(xmlEvent).map { newChildNode =>
           val newElement = element.copy(child = element.child :+ newChildNode)
           BuildingElemScala(newElement, ancestors: _*)
-      }
+        }
 
-    private def buildChildElement: EventToBuilder = event => {
-      xmlEventToPartialElement(event).map { newChildElement =>
-        BuildingElemScala(newChildElement, Seq(element) ++ ancestors: _*)
-      }
-    }
+      def buildChildElement: Option[BuildingElemScala] =
+        xmlEventToPartialElement(xmlEvent).map { newChildElement =>
+          BuildingElemScala(newChildElement, Seq(element) ++ ancestors: _*)
+        }
 
-    private def finaliseElement: EventToBuilder =
-      event =>
-        PartialFunction.condOpt(event) {
+      def finaliseElement: Option[ScalaXmlElemBuilder] =
+        PartialFunction.condOpt(xmlEvent) {
           case e if e.isEndElement && ancestors.nonEmpty =>
             val Seq(first, rest @ _*) = ancestors
             val newElement            = first.copy(child = first.child :+ element)
             BuildingElemScala(newElement, rest: _*)
           case e if e.isEndElement =>
             FinalElemScala(elem = element)
-      }
+        }
+
+      includeChildren
+        .orElse(buildChildElement)
+        .orElse(finaliseElement)
+        .getOrElse(CannotProcessEvent(this, xmlEvent))
+
+    }
 
   }
 
-  object Scanner extends Scanner[XMLEvent, ScalaXmlElemBuilder, Elem] {
-    def initial: ScalaXmlElemBuilder = NoElem$Scala
-
-    def scan(xmlElementBuilder: ScalaXmlElemBuilder,
-             xMLEvent: XMLEvent): ScalaXmlElemBuilder =
-      xmlElementBuilder.process(xMLEvent)
-
-    def collect(xmlElementBuilder: ScalaXmlElemBuilder): Option[Elem] =
-      PartialFunction.condOpt(xmlElementBuilder) {
-        case FinalElemScala(e) => e
-      }
-  }
-
-  case object NoElem$Scala extends ScalaXmlElemBuilder {
+  private case object NoElem extends ScalaXmlElemBuilder {
     def process(xMLEvent: XMLEvent): ScalaXmlElemBuilder = xMLEvent match {
       case s: StartElement => BuildingElemScala(startElementToPartialElement(s))
       case any             => NonElemScala(any)
     }
   }
 
+}
+
+/**
+  * [[ScalaXmlElemBuilder]] rebuilds a [[scala.xml.Elem]] tree from [[javax.xml.stream.events.XMLEvent]] events.
+  * The element is fully rebuilt when the builder becomes [[xs4s.ScalaXmlElemBuilder.FinalElemScala]].
+  */
+sealed trait ScalaXmlElemBuilder {
+  def process(xmlEvent: XMLEvent): ScalaXmlElemBuilder
+
+  def fold[T](whenFinal: Elem => T,
+              whenError: XmlStreamError => T,
+              otherwise: ScalaXmlElemBuilder => T): T = this match {
+    case FinalElemScala(elem) => whenFinal(elem)
+    case cpe @ CannotProcessEvent(_, _) =>
+      whenError(XmlStreamError.InvalidSequenceOfParserEvents)
+    case _ => otherwise(this)
+  }
 }

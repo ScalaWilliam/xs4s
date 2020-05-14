@@ -3,7 +3,6 @@ package xs4s
 import xs4s.syntax._
 
 import java.io.ByteArrayInputStream
-
 import javax.xml.stream.XMLInputFactory
 import org.scalatest.{Inside, Matchers, WordSpec}
 
@@ -38,7 +37,9 @@ final class BasicElementExtractorBuilderSpec
       val is = new ByteArrayInputStream(input.getBytes("UTF-8"))
       try {
         val streamer = inputFactory.createXMLEventReader(is)
-        try streamer.toIterator.scanCollect(instance.Scan).toVector
+        try streamer.toIterator
+          .through(instance.scannerThrowingOnError)
+          .toVector
         finally streamer.close()
       } finally is.close()
     }
@@ -49,7 +50,7 @@ final class BasicElementExtractorBuilderSpec
 
     "Not match any elements" in {
       val extractor =
-        XmlElementExtractor.collectWithPartialFunctionOfElementNames {
+        XmlElementExtractor.captureWithPartialFunctionOfElementNames {
           case List("fail") =>
             (e: Elem) =>
               e
@@ -58,7 +59,7 @@ final class BasicElementExtractorBuilderSpec
     }
     "Match /items/item" in {
       val extractor =
-        XmlElementExtractor.collectWithPartialFunctionOfElementNames {
+        XmlElementExtractor.captureWithPartialFunctionOfElementNames {
           case List("items", "item") =>
             (e: Elem) =>
               e
@@ -70,7 +71,7 @@ final class BasicElementExtractorBuilderSpec
     }
     "Match /items/item and /items/embedded/item" in {
       XmlElementExtractor
-        .collectWithPartialFunctionOfElementNames {
+        .captureWithPartialFunctionOfElementNames {
           case List("items", "item") =>
             (e: Elem) =>
               e

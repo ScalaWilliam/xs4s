@@ -16,7 +16,7 @@ private[xs4s] object ScalaXmlElemBuilder {
       _.fold(e => Some(e), whenError = err => throw err, _ => None))
 
   def scannerEitherOnError
-    : Scanner[XMLEvent, ScalaXmlElemBuilder, Either[Exception, Elem]] =
+    : Scanner[XMLEvent, ScalaXmlElemBuilder, Either[XmlStreamError, Elem]] =
     Scanner.of(noElem)((state, event: XMLEvent) => state.process(event))(
       _.fold(e => Some(Right(e)),
              whenError = err => Some(Left(err)),

@@ -51,7 +51,7 @@ final class XmlElementExtractor[T](
              otherwise = None))
 
   def scannerEitherOnError
-    : Scanner[XMLEvent, EventProcessor, Either[Throwable, T]] =
+    : Scanner[XMLEvent, EventProcessor, Either[XmlStreamError, T]] =
     Scanner.of(EventProcessor.initial)((processor, event: XMLEvent) =>
       processor.process(event).getOrElse(processor))(
       _.fold(whenCaptured = v => Some(Right(v)),

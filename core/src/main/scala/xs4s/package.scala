@@ -1,6 +1,7 @@
 import cats.effect.{Blocker, ConcurrentEffect, ContextShift, Sync}
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.XMLEvent
+import scala.language.higherKinds
 
 package object xs4s {
 

@@ -1,10 +1,12 @@
-package com.scalawilliam.xs4s
+package xs4s
+
+import xs4s.syntax._
 
 import java.io.ByteArrayInputStream
-import javax.xml.stream.XMLInputFactory
 
+import javax.xml.stream.XMLInputFactory
 import org.scalatest.{Inside, Matchers, WordSpec}
-import Implicits._
+
 import scala.xml.Elem
 
 /**
@@ -13,7 +15,10 @@ import scala.xml.Elem
   *
   * This version concerns a simple List[ElementName] which does not bother with prefixes and the like
   */
-class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Inside {
+final class BasicElementExtractorBuilderSpec
+    extends WordSpec
+    with Matchers
+    with Inside {
   "Basic element extractor" must {
 
     val input =
@@ -39,32 +44,46 @@ class BasicElementExtractorBuilderSpec extends WordSpec with Matchers with Insid
     }
 
     implicit class builderProcess[T](i: XmlElementExtractor[T]) {
-      def materialize = process[T](i)
+      def materialize: Vector[T] = process[T](i)
     }
 
     "Not match any elements" in {
-      val extractor = XmlElementExtractor({ case List("fail") => (e: Elem) => e })
+      val extractor =
+        XmlElementExtractor.collectWithPartialFunctionOfElementNames {
+          case List("fail") =>
+            (e: Elem) =>
+              e
+        }
       extractor.materialize shouldBe empty
     }
     "Match /items/item" in {
-      val extractor = XmlElementExtractor({
-        case List("items", "item") => (e: Elem) => e
-      })
-      extractor.materialize.map(_.toString) should contain only(
+      val extractor =
+        XmlElementExtractor.collectWithPartialFunctionOfElementNames {
+          case List("items", "item") =>
+            (e: Elem) =>
+              e
+        }
+      extractor.materialize.map(_.toString) should contain only (
         "<item>General</item>",
         "<item><item>Nested</item></item>"
-        )
+      )
     }
     "Match /items/item and /items/embedded/item" in {
-      XmlElementExtractor {
-        case List("items", "item") => (e: Elem) => e
-        case List("items", "embedded", "item") => (e: Elem) => e
-      }
-        .materialize.map(_.toString) should contain only(
+      XmlElementExtractor
+        .collectWithPartialFunctionOfElementNames {
+          case List("items", "item") =>
+            (e: Elem) =>
+              e
+          case List("items", "embedded", "item") =>
+            (e: Elem) =>
+              e
+        }
+        .materialize
+        .map(_.toString) should contain only (
         "<item>Embedded</item>",
         "<item>General</item>",
         "<item><item>Nested</item></item>"
-        )
+      )
     }
   }
 

@@ -1,22 +1,28 @@
-scalaVersion in ThisBuild := "2.12.4"
-crossScalaVersions in ThisBuild := Seq("2.12.4", "2.11.12")
+name := "xs4s-root"
+
+scalaVersion in ThisBuild := "2.12.11"
+crossScalaVersions in ThisBuild := Seq("2.12.11", "2.13.2")
 organization in ThisBuild := "com.scalawilliam"
 version in ThisBuild := "0.5"
 
 lazy val root = (project in file("."))
-  .aggregate(core, examples)
-  .dependsOn(core, examples)
+  .aggregate(core, example)
+  .dependsOn(core, example)
 
 lazy val core = project.settings(
   libraryDependencies ++= Seq(
-    "xmlunit" % "xmlunit" % "1.6" % "test",
-    "org.codehaus.woodstox" % "woodstox-core-asl" % "4.4.1",
-    "org.scalatest" %% "scalatest" % "3.0.4" % "test",
-    "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
+    "xmlunit"                % "xmlunit"           % "1.6" % "test",
+    "org.codehaus.woodstox"  % "woodstox-core-asl" % "4.4.1",
+    "org.scalatest"          %% "scalatest"        % "3.1.2" % "test",
+    "org.scala-lang.modules" %% "scala-xml"        % "1.3.0",
+    "co.fs2"                 %% "fs2-core"         % "2.2.1" % "provided",
+    "co.fs2"                 %% "fs2-io"           % "2.2.1" % "provided",
   ),
   name := "xs4s",
   publishMavenStyle := true,
-  pomIncludeRepository := { _ => false },
+  pomIncludeRepository := { _ =>
+    false
+  },
   publishTo := {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot.value)
@@ -50,25 +56,17 @@ lazy val core = project.settings(
     </developers>
 )
 
-lazy val examples = project.dependsOn(core).settings(
-  run <<= (run in Runtime) dependsOn(downloadCarparks, downloadXmark),
-  runMain <<= (runMain in Runtime) dependsOn(downloadCarparks, downloadXmark),
-  downloadCarparks := {
-    import sbt._
-    import IO._
-    if (!file("downloads/carparks-data").exists()) {
-      download(url("http://81.17.70.199/carparks/data.zip"), file("downloads/carparks-data.zip"))
-      unzip(file("downloads/carparks-data.zip"), file("downloads/carparks-data"))
-    }
-  },
-  downloadXmark := {
-    import sbt.IO._
-    if (!file("downloads/xmark4.xml").exists()) {
-      download(url("https://github.com/Saxonica/XT-Speedo/blob/master/data/xmark-tests/xmark4.xml?raw=true"), file("downloads/xmark4.xml"))
-    }
-  }
-)
+def download(source: sbt.URL, target: sbt.File): Int = {
+  import scala.sys.process._
 
-lazy val downloadCarparks = taskKey[Unit]("Download carparks task")
+  (source #> target).!
+}
 
-lazy val downloadXmark = taskKey[Unit]("Download speedo")
+lazy val example = project
+  .dependsOn(core)
+  .settings(
+    libraryDependencies += "co.fs2"  %% "fs2-core"    % "2.2.1",
+    libraryDependencies += "co.fs2"  %% "fs2-io"      % "2.2.1",
+  )
+
+Global / onChangedBuildSource := ReloadOnSourceChanges

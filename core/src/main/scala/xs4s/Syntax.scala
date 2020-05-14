@@ -6,13 +6,15 @@ import javax.xml.stream.XMLEventReader
 import javax.xml.stream.events.XMLEvent
 import xs4s.generic.GenericSyntax
 
+import scala.language.higherKinds
+
 trait Syntax extends GenericSyntax {
 
-  implicit class RichXMLEventReader(eventReader: XMLEventReader)
-      extends scala.collection.Iterator[XMLEvent] {
-    def hasNext: Boolean = eventReader.hasNext
-
-    def next(): XMLEvent = eventReader.nextEvent()
+  implicit class RichXMLEventReader(eventReader: XMLEventReader) {
+    def toIterator: Iterator[XMLEvent] = new Iterator[XMLEvent] {
+      def hasNext: Boolean = eventReader.hasNext
+      def next(): XMLEvent = eventReader.nextEvent()
+    }
   }
 
   implicit class RichFs2StreamObj(obj: fs2.Stream.type) {

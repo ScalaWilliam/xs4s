@@ -10,6 +10,12 @@ materialise that partial tree into a full tree, which will return to the user.
 
 FS2 compatibility is included (Functional Streams for Scala).
 
+xs4s also offers a replacement of sclaa.xml.XML.load functions, for example, the following assertion passes:
+
+```scala
+assert(xs4s.XML.loadString("<test/>") == <test/>)
+```
+
 Using the library
 ======
 

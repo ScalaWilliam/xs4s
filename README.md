@@ -83,7 +83,7 @@ def extractAnchorTexts(sourceFile: File): Unit = {
 This example counts the popularity of Wikipedia anchors from their `abstract` documentation.
 
 Many things all at once:
-- Seading a streaming URL
+- Reading a streaming URL
 - Passing through GZip decoder
 - Then parsing XML
 - Then doing map-reduce data from Wikipedia

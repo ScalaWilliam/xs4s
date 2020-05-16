@@ -21,10 +21,17 @@ package object example {
       v = a(k) + b(k)
     } yield k -> v)
 
-  def countTopItems[F[_], I]: Pipe[F, I, List[(I, Int)]] =
+  def countTopItemsFs2[F[_], I]: Pipe[F, I, List[(I, Int)]] =
     _.map(v => Map(v -> 1))
       .reduce(mergeCountMaps[I])
       .map(_.filter(_._2 > 1))
       .map(_.toList.sortBy { case (keyword, count) => -count })
+
+  def countTopItemsIterator[I]: Iterator[I] => List[(I, Int)] =
+    _.map(v => Map(v -> 1))
+      .reduce(mergeCountMaps[I])
+      .filter(_._2 > 1)
+      .toList
+      .sortBy { case (keyword, count) => -count }
 
 }

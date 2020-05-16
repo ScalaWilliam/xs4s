@@ -1,35 +1,33 @@
 XML Streaming for Scala (xs4s) [![Maven Central](https://img.shields.io/maven-central/v/com.scalawilliam/xs4s-core_2.13.svg)](https://maven-badges.herokuapp.com/maven-central/com.scalawilliam/xs4s-core_2.13) [![Build Status](https://travis-ci.org/ScalaWilliam/xs4s.svg?branch=master)](https://travis-ci.org/ScalaWilliam/xs4s)
 ====
 
-Ths library makes it easy for you to consume multi-gigabyte XML files in a streaming fashion - ie read and process a 4GB Wikipedia XML file,
-straight from the web, without running out of memory.
+# Capabilities
 
-It consumes events from the standard XML API (https://github.com/FasterXML/woodstox),
-gradually forms a partial tree, and based on a user-supplied function ("query"), it will 
-materialise that partial tree into a full tree, which will return to the user.
+xs4s offers the following capabilities:
 
-FS2 compatibility is included (Functional Streams for Scala).
-
-xs4s also offers a replacement of sclaa.xml.XML.load functions, for example, the following assertion passes:
-
+- Scala-friendly utilities around the `javax.xml.stream.events` API.
+- A mapping from the Streaming APIs to `scala.xml.Elem` and other Scala XML classes.
+- An alternative method of parsing XML to `scala.xml.XML.load()`, so for example this will work:
 ```scala
 assert(xs4s.XML.loadString("<test/>") == <test/>)
 ```
+- An integration with FS2 for pure FP streaming.
+- Large file streaming, such as multi-gigabyte XML files, for example GZIPped files straight from Wikipedia, without running out of memory.
 
-Using the library
-======
 
-Add the following to your build.sbt:
+## How it does it
+It uses the standard XML API (https://github.com/FasterXML/woodstox) as a back-end. It gradually forms a partial tree, and based on a user-supplied function ("query"), it will materialise that partial tree into a full tree, which will return to the user.
+
+## Getting started
+
+Add the following to your build.sbt (compatible with Scala 2.12 and 2.13 series):
 
 ```sbt
-scalaVersion := "2.13.2"
-
 libraryDependencies += "com.scalawilliam" %% "xs4s-core" % "0.7"
 libraryDependencies += "com.scalawilliam" %% "xs4s-fs2" % "0.7"
-
-// optionally, if you want to use a snapshot build.
-// resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ```
+
+## FS2 Streaming
 
 Then, you can implement functions such as the following ([BriefFS2Example](example/src/main/scala/xs4s/example/brief/BriefFS2Example.scala) - note the explicit types are for clarity):
 
@@ -59,6 +57,8 @@ def extractAnchorTexts(byteStream: Stream[IO, Byte], blocker: Blocker)(
   anchorElements.map(_.text)
 }
 ```
+
+## Plain `Iterator` streaming
 
 Alternatively, we have a plain-Scala API, especially where you have legacy Java interaction, or you feel uncomfortable with pure FP for now: [BriefPlainScalaExample](example/src/main/scala/xs4s/example/brief/BriefPlainScalaExample.scala).:
 

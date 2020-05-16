@@ -18,6 +18,6 @@ Then in https://oss.sonatype.org/ log in, go to 'Staging Repositories', sort by 
 
 https://central.sonatype.org/pages/releasing-the-deployment.html
 
-To initially set up, go to Sonatype JIRA https://issues.sonatype.org/secure/Dashboard.jspa
+To initially set up, go to Sonatype JIRA https://issues.sonatype.org/secure/Dashboard.jspa and make something like this https://issues.sonatype.org/browse/OSSRH-13569
 
 ScalaWilliam <https://www.scalawilliam.com/>

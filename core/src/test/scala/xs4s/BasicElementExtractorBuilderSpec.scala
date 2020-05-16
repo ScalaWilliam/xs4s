@@ -1,8 +1,9 @@
 package xs4s
 
-import xs4s.syntax.all._
+import xs4s.syntax._
 
 import java.io.ByteArrayInputStream
+
 import javax.xml.stream.XMLInputFactory
 import org.scalatest.{Inside, Matchers, WordSpec}
 

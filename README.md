@@ -16,7 +16,7 @@ Using the library
 Add the following to your build.sbt:
 
 ```sbt
-scalaVersion := "2.12.3"
+scalaVersion := "2.13.2"
 
 libraryDependencies += "com.scalawilliam" %% "xs4s-core" % "0.6"
 libraryDependencies += "com.scalawilliam" %% "xs4s-fs2" % "0.6"
@@ -47,6 +47,7 @@ def extractAnchorTexts(byteStream: Stream[IO, Byte], blocker: Blocker)(
   /** Collect all the anchors as [[scala.xml.Elem]] */
   val anchorElements: Stream[IO, Elem] =
     xmlEventStream.through(anchorElementExtractor.toFs2PipeThrowError)
+
 
   /** And finally extract the text contents for each Elem */
   anchorElements.map(_.text)
@@ -80,5 +81,26 @@ $ git clone https://github.com/ScalaWilliam/xs4s.git
 $ sbt "examples/runMain xs4s.example.FindMostPopularWikipediaKeywordsFs2App" 
 $ sbt "examples/runMain xs4s.example.FindMostPopularWikipediaKeywordsPlainScalaApp" 
 ```
+
+The code is lightweight, with ElementBuilder being the heaviest code as it converts
+StAX events into Scala XML classes.
+
+This can consume 100MB files or 4GB files without any problems. And it does it fast. It converts XML streams into Scala XML trees on demand, which you can then query from.
+
+Publishing
+======
+``` bash
+$ cat <<EOF > ~/.sbt/0.13/sonatype.sbt
+credentials +=
+  Credentials("Sonatype Nexus Repository Manager",
+              "oss.sonatype.org",
+              "USERNAME",
+              "PASSWORD")
+EOF
+
+$ sbt +core/publishSigned
+```
+
+Then in https://oss.sonatype.org/ log in, go to 'Staging Repositories', sort by date descending, select the latest package, click 'Close' and then 'Release'.
 
 ScalaWilliam <https://www.scalawilliam.com/>

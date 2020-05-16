@@ -10,6 +10,7 @@ credentials +=
               "PASSWORD")
 EOF
 
+$ export GPG_TTY=$(tty)
 $ sbt +core/publishSigned
 ```
 

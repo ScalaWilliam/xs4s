@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
   .aggregate(core)
   .aggregate(example)
   .aggregate(fs2)
+  .settings(publishArtifact := false)
 
 lazy val core = project.settings(
   libraryDependencies ++= Seq(
@@ -17,8 +18,7 @@ lazy val core = project.settings(
     "org.scalatest"          %% "scalatest"        % "3.1.2" % "test",
     "org.scala-lang.modules" %% "scala-xml"        % "1.3.0"
   ),
-  name := "xs4s-core",
-  publishArtifact := true
+  name := "xs4s-core"
 )
 
 pomIncludeRepository in ThisBuild := { _ =>
@@ -26,8 +26,6 @@ pomIncludeRepository in ThisBuild := { _ =>
 }
 
 publishMavenStyle in ThisBuild := true
-
-publishArtifact in ThisBuild := false
 
 publishTo in ThisBuild := {
   val nexus = "https://oss.sonatype.org/"
@@ -48,15 +46,17 @@ lazy val fs2 = project
   .settings(
     name := "xs4s-fs2",
     libraryDependencies ++= Seq(
-      "co.fs2" %% "fs2-core" % "2.2.1",
-      "co.fs2" %% "fs2-io"   % "2.2.1"
-    ),
-    publishArtifact := true
+      "co.fs2" %% "fs2-core" % "2.3.0",
+      "co.fs2" %% "fs2-io"   % "2.3.0"
+    )
   )
 
 lazy val example = project
   .dependsOn(fs2)
   .dependsOn(core)
+  .settings(
+    publishArtifact := false
+  )
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 

@@ -84,3 +84,21 @@ pomExtra in ThisBuild := <url>https://github.com/ScalaWilliam/xs4s</url>
       <url>https://www.scalawilliam.com</url>
     </developer>
   </developers>
+
+enablePlugins(MicrositesPlugin)
+
+micrositeName := "XML Streaming for Scala (xs4s)"
+micrositeDescription := "Consume large documents without running out of RAM"
+micrositeUrl := "https://scalawilliam.github.io"
+micrositeBaseUrl := "/xs4s"
+//micrositeDocumentationUrl := "/yoursite/docs"
+micrositeDocumentationLabelDescription := "Documentation"
+micrositeAuthor := "ScalaWilliam"
+micrositeHomepage := "https://47deg.github.io/sbt-microsites/"
+micrositeOrganizationHomepage := "https://www.scalawilliam.com"
+micrositeTwitter := "@scalawilliam"
+micrositeTwitterCreator := "@scalawilliam"
+micrositeGithubOwner := "ScalaWilliam"
+micrositeGithubRepo := "xs4s"
+// micrositeAnalyticsToken := 'UA-XXXXX-Y'
+micrositeGitterChannel := false

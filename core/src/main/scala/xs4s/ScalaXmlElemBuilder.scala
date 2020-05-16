@@ -1,37 +1,42 @@
 package xs4s
 
 import javax.xml.stream.events.{StartElement, XMLEvent}
-import javax.xml.stream.events.{Attribute => JavaAttribute, Comment => JavaComment, Namespace => JavaNamespace, ProcessingInstruction => JavaProcessingInstruction}
+import javax.xml.stream.events.{
+  Attribute => JavaAttribute,
+  Comment => JavaComment,
+  Namespace => JavaNamespace,
+  ProcessingInstruction => JavaProcessingInstruction
+}
 import xs4s.ScalaXmlElemBuilder.{CannotProcessEvent, FinalElemScala}
 import xs4s.generic.Scanner
 
 import scala.xml._
 
 /**
- * This is a finite-state-machine (FSM) with a Scanner that
- * constructs scala.xml.* from javax.xml.stream.events.XMLEvent
- */
+  * This is a finite-state-machine (FSM) with a Scanner that
+  * constructs scala.xml.* from javax.xml.stream.events.XMLEvent
+  */
 private[xs4s] object ScalaXmlElemBuilder {
 
   def initial: ScalaXmlElemBuilder = noElem
 
   def scannerThrowingOnError: Scanner[XMLEvent, ScalaXmlElemBuilder, Elem] =
     Scanner.of(noElem)((state, event: XMLEvent) => state.process(event))(
-      _.fold(e => Some(e), whenError = err => throw err, _ => None))
+      _.fold(elem => Some(elem), whenError = err => throw err, _ => None))
 
   def scannerEitherOnError
     : Scanner[XMLEvent, ScalaXmlElemBuilder, Either[XmlStreamError, Elem]] =
     Scanner.of(noElem)((state, event: XMLEvent) => state.process(event))(
-      _.fold(e => Some(Right(e)),
-             whenError = err => Some(Left(err)),
+      _.fold(elem => Some(Right(elem)),
+             whenError = error => Some(Left(error)),
              _ => None))
 
   private def noElem: ScalaXmlElemBuilder = NoElem
 
   private def xmlEventToPartialElement(xmlEvent: XMLEvent): Option[Elem] =
     PartialFunction.condOpt(xmlEvent) {
-      case s: StartElement =>
-        startElementToPartialElement(s)
+      case startElement: StartElement =>
+        startElementToPartialElement(startElement)
     }
 
   private def startElementToPartialElement(startElement: StartElement): Elem = {
@@ -39,22 +44,30 @@ private[xs4s] object ScalaXmlElemBuilder {
 
     // Namespace prefix cannot be empty string, must be null instead
     val nsBindings = startElement.getNamespaces.asScala
-      .collect { case n: JavaNamespace => n }
+      .collect { case namespace: JavaNamespace => namespace }
       .foldRight[NamespaceBinding](TopScope) {
-        case (a, b) if a.getPrefix.isEmpty =>
-          NamespaceBinding(null, a.getNamespaceURI, b)
-        case (a, b) => NamespaceBinding(a.getPrefix, a.getNamespaceURI, b)
+        case (namespace, namespaceBinding) if namespace.getPrefix.isEmpty =>
+          NamespaceBinding(null, namespace.getNamespaceURI, namespaceBinding)
+        case (namespace, namespaceBinding) =>
+          NamespaceBinding(namespace.getPrefix,
+                           namespace.getNamespaceURI,
+                           namespaceBinding)
       }
 
     // Attribute prefix cannot be empty string
     val attributes = startElement.getAttributes.asScala
-      .collect { case a: JavaAttribute => a }
-      .foldRight[MetaData](Null)((a, b) =>
-        Option(a.getName.getPrefix).filter(_.nonEmpty) match {
-          case Some(p) =>
-            new PrefixedAttribute(p, a.getName.getLocalPart, a.getValue, b)
+      .collect { case attribute: JavaAttribute => attribute }
+      .foldRight[MetaData](Null)((attribute, metaData) =>
+        Option(attribute.getName.getPrefix).filter(_.nonEmpty) match {
+          case Some(prefix) =>
+            new PrefixedAttribute(prefix,
+                                  attribute.getName.getLocalPart,
+                                  attribute.getValue,
+                                  metaData)
           case None =>
-            new UnprefixedAttribute(a.getName.getLocalPart, a.getValue, b)
+            new UnprefixedAttribute(attribute.getName.getLocalPart,
+                                    attribute.getValue,
+                                    metaData)
       })
 
     // Scala XML requires a null prefix, doesn't like empty string
@@ -74,12 +87,14 @@ private[xs4s] object ScalaXmlElemBuilder {
 
   private def xmlEventToNonElement(xmlEvent: XMLEvent): Option[Node] =
     PartialFunction.condOpt(xmlEvent) {
-      case ce if ce.isCharacters && ce.asCharacters().isCData =>
-        scala.xml.PCData(ce.asCharacters().getData)
-      case ce if ce.isCharacters => scala.xml.Text(ce.asCharacters().getData)
-      case pis: JavaProcessingInstruction =>
-        scala.xml.ProcInstr(pis.getTarget, pis.getData)
-      case cm: JavaComment => scala.xml.Comment(cm.getText)
+      case pcData if pcData.isCharacters && pcData.asCharacters().isCData =>
+        scala.xml.PCData(pcData.asCharacters().getData)
+      case textData if textData.isCharacters =>
+        scala.xml.Text(textData.asCharacters().getData)
+      case processingInstruction: JavaProcessingInstruction =>
+        scala.xml.ProcInstr(processingInstruction.getTarget,
+                            processingInstruction.getData)
+      case comment: JavaComment => scala.xml.Comment(comment.getText)
     }
 
   private trait EventToBuilder {
@@ -107,7 +122,7 @@ private[xs4s] object ScalaXmlElemBuilder {
       with ScalaXmlElemBuilder {
     override def getMessage: String =
       s"Cannot process event ${xmlEvent} due to invalid sequence. Tree was: ${currentState.elementsTopDown
-        .map((e: Elem) => e.label)
+        .map((elem: Elem) => elem.label)
         .mkString("> ")}"
     override def process(xmlEvent: XMLEvent): ScalaXmlElemBuilder = this
   }
@@ -157,8 +172,9 @@ private[xs4s] object ScalaXmlElemBuilder {
 
   private case object NoElem extends ScalaXmlElemBuilder {
     def process(xMLEvent: XMLEvent): ScalaXmlElemBuilder = xMLEvent match {
-      case s: StartElement => BuildingElemScala(startElementToPartialElement(s))
-      case any             => NonElemScala(any)
+      case startElement: StartElement =>
+        BuildingElemScala(startElementToPartialElement(startElement))
+      case anyOther => NonElemScala(anyOther)
     }
   }
 
@@ -175,7 +191,7 @@ sealed trait ScalaXmlElemBuilder {
               whenError: XmlStreamError => T,
               otherwise: ScalaXmlElemBuilder => T): T = this match {
     case FinalElemScala(elem) => whenFinal(elem)
-    case cpe @ CannotProcessEvent(_, _) =>
+    case CannotProcessEvent(_, _) =>
       whenError(XmlStreamError.InvalidSequenceOfParserEvents)
     case _ => otherwise(this)
   }

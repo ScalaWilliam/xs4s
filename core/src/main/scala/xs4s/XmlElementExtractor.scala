@@ -48,20 +48,20 @@ final class XmlElementExtractor[T](
   def scannerThrowingOnError: Scanner[XMLEvent, EventProcessor, T] =
     Scanner.of(EventProcessor.initial)((processor, event: XMLEvent) =>
       processor.process(event).getOrElse(processor))(
-      _.fold(whenCaptured = v => Some(v),
-             whenErrored = err => throw err,
+      _.fold(whenCaptured = output => Some(output),
+             whenErrored = error => throw error,
              otherwise = None))
 
   def scannerEitherOnError
     : Scanner[XMLEvent, EventProcessor, Either[XmlStreamError, T]] =
     Scanner.of(EventProcessor.initial)((processor, event: XMLEvent) =>
       processor.process(event).getOrElse(processor))(
-      _.fold(whenCaptured = v => Some(Right(v)),
-             whenErrored = err => Some(Left(err)),
+      _.fold(whenCaptured = output => Some(Right(output)),
+             whenErrored = error => Some(Left(error)),
              otherwise = None))
 
   sealed trait EventProcessor {
-    def process(xmlElemv: XMLEvent): Option[EventProcessor]
+    def process(xmlEvent: XMLEvent): Option[EventProcessor]
 
     def fold[V](whenCaptured: T => V,
                 whenErrored: XmlStreamError => V,
@@ -79,12 +79,17 @@ final class XmlElementExtractor[T](
 
     final case class Errored(capturing: Capturing, error: XmlStreamError)
         extends EventProcessor {
-      override def process(xmlElemv: XMLEvent): Option[EventProcessor] =
+      override def process(xmlEvent: XMLEvent): Option[EventProcessor] =
         Some(this)
     }
 
     final case class Captured(stack: Vector[StartElement], data: T)
         extends EventProcessor {
+
+      /**
+        * The next XMLEvent that happens forces us to drop the captured stack element
+        * and ascent to its parent, hence the .dropRight(1)
+        */
       def process(xmlEvent: XMLEvent): Option[EventProcessor] =
         ProcessingStack(stack.dropRight(1): _*).process(xmlEvent)
     }
@@ -98,7 +103,7 @@ final class XmlElementExtractor[T](
           .process(xmlEvent)
           .fold(
             whenFinal = elem => Captured(stack, callback(elem)),
-            whenError = err => Errored(this, err),
+            whenError = error => Errored(this, error),
             otherwise = other => Capturing(stack, other, callback)
           )
       }
@@ -131,7 +136,7 @@ final class XmlElementExtractor[T](
     }
 
     case object FinishedProcessing extends EventProcessor {
-      override def process(xmlElemv: XMLEvent): Option[EventProcessor] =
+      override def process(xmlEvent: XMLEvent): Option[EventProcessor] =
         Some(FinishedProcessing)
     }
 

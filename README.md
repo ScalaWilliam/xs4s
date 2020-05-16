@@ -18,8 +18,8 @@ Add the following to your build.sbt:
 ```sbt
 scalaVersion := "2.13.2"
 
-libraryDependencies += "com.scalawilliam" %% "xs4s-core" % "0.6"
-libraryDependencies += "com.scalawilliam" %% "xs4s-fs2" % "0.6"
+libraryDependencies += "com.scalawilliam" %% "xs4s-core" % "0.7"
+libraryDependencies += "com.scalawilliam" %% "xs4s-fs2" % "0.7"
 
 // optionally, if you want to use a snapshot build.
 // resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"

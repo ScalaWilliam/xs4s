@@ -1,12 +1,7 @@
 package xs4s
 
-import xs4s.syntax._
-
-import java.io.ByteArrayInputStream
-
-import javax.xml.stream.XMLInputFactory
+import xs4s.syntax.core._
 import org.scalatest.{Inside, Matchers, WordSpec}
-
 import scala.xml.Elem
 
 /**
@@ -32,36 +27,27 @@ final class BasicElementExtractorBuilderSpec
          |
        """.stripMargin
 
-    val inputFactory = XMLInputFactory.newInstance()
-
-    def process[T](instance: XmlElementExtractor[T]): Vector[T] = {
-      val is = new ByteArrayInputStream(input.getBytes("UTF-8"))
-      try {
-        val streamer = inputFactory.createXMLEventReader(is)
-        try streamer.toIterator
-          .through(instance.scannerThrowingOnError)
-          .toVector
-        finally streamer.close()
-      } finally is.close()
-    }
-
     implicit class builderProcess[T](i: XmlElementExtractor[T]) {
-      def materialize: Vector[T] = process[T](i)
+      def materialize: Vector[T] =
+        XMLStream.fromString(input).extractWith(i).toVector
     }
 
     "Not match any elements" in {
-      val extractor =
-        XmlElementExtractor.captureWithPartialFunctionOfElementNames {
-          case List("fail") =>
-            (e: Elem) =>
-              e
-        }
-      extractor.materialize shouldBe empty
+      assert {
+        XmlElementExtractor
+          .captureWithPartialFunctionOfElementNames {
+            case Vector("fail") =>
+              (e: Elem) =>
+                e
+          }
+          .materialize
+          .isEmpty
+      }
     }
     "Match /items/item" in {
       val extractor =
         XmlElementExtractor.captureWithPartialFunctionOfElementNames {
-          case List("items", "item") =>
+          case Vector("items", "item") =>
             (e: Elem) =>
               e
         }
@@ -73,10 +59,10 @@ final class BasicElementExtractorBuilderSpec
     "Match /items/item and /items/embedded/item" in {
       XmlElementExtractor
         .captureWithPartialFunctionOfElementNames {
-          case List("items", "item") =>
+          case Vector("items", "item") =>
             (e: Elem) =>
               e
-          case List("items", "embedded", "item") =>
+          case Vector("items", "embedded", "item") =>
             (e: Elem) =>
               e
         }

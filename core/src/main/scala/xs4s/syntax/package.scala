@@ -14,13 +14,14 @@ package object syntax {
     implicit class RichXMLEventReaderIterator(eventReader: XMLEventReader) {
       def toIterator: Iterator[XMLEvent] = xmlEventReaderToIterator(eventReader)
 
-      def extractWith[T](xmlElementExtractor: XmlElementExtractor[T]): Iterator[T] =
+      def extractWith[T](
+          xmlElementExtractor: XmlElementExtractor[T]): Iterator[T] =
         toIterator.through(xmlElementExtractor.scannerThrowingOnError)
 
       def readElementFully: Elem =
         xs4s.readElementFully(eventReader)
     }
   }
-  object core    extends CoreSyntax
+  object core extends CoreSyntax
 
 }

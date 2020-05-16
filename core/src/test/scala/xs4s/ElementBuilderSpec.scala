@@ -1,6 +1,7 @@
 package xs4s
 
-import xs4s.syntax.all._
+import xs4s.syntax.core._
+import xs4s.syntax.generic._
 import java.io.ByteArrayInputStream
 
 import javax.xml.stream.XMLInputFactory

@@ -7,20 +7,22 @@ import scala.xml.Elem
 
 object XmlElementExtractor {
 
+  /** Materialises the element and all its contents as soon as the specified name is reached */
   def filterElementsByName(name: String): XmlElementExtractor[Elem] =
     filterElementsByPredicate(elementTree =>
       elementTree.lastOption.map(_.getName.getLocalPart).contains(name))
 
+  /** Looks at the ancenstry of the element. Newest element is last. */
   def filterElementsByPredicate[T](
-      p: List[StartElement] => Boolean): XmlElementExtractor[Elem] =
+      p: Vector[StartElement] => Boolean): XmlElementExtractor[Elem] =
     new XmlElementExtractor(lse => if (p(lse)) Some(identity) else None)
 
   def captureWithPartialFunctionOfElementNames[T](
-      pf: PartialFunction[List[String], Elem => T]): XmlElementExtractor[T] =
+      pf: PartialFunction[Vector[String], Elem => T]): XmlElementExtractor[T] =
     new XmlElementExtractor[T](l => pf.lift(l.map(_.getName.getLocalPart)))
 
   def collectWithPartialFunction[T](
-      pf: PartialFunction[List[StartElement], Elem => T])
+      pf: PartialFunction[Vector[StartElement], Elem => T])
     : XmlElementExtractor[T] =
     new XmlElementExtractor[T](l => pf.lift(l))
 
@@ -41,7 +43,7 @@ object XmlElementExtractor {
   * Basically we want immediate processing here.
   */
 final class XmlElementExtractor[T](
-    extractionFunction: List[StartElement] => Option[Elem => T]) {
+    extractionFunction: Vector[StartElement] => Option[Elem => T]) {
 
   def scannerThrowingOnError: Scanner[XMLEvent, EventProcessor, T] =
     Scanner.of(EventProcessor.initial)((processor, event: XMLEvent) =>
@@ -81,13 +83,13 @@ final class XmlElementExtractor[T](
         Some(this)
     }
 
-    final case class Captured(stack: List[StartElement], data: T)
+    final case class Captured(stack: Vector[StartElement], data: T)
         extends EventProcessor {
       def process(xmlEvent: XMLEvent): Option[EventProcessor] =
         ProcessingStack(stack.dropRight(1): _*).process(xmlEvent)
     }
 
-    final case class Capturing(stack: List[StartElement],
+    final case class Capturing(stack: Vector[StartElement],
                                state: ScalaXmlElemBuilder,
                                callback: Elem => T)
         extends EventProcessor {
@@ -108,10 +110,10 @@ final class XmlElementExtractor[T](
         PartialFunction.condOpt(xmlEvent) {
           case startElement: StartElement =>
             val newStack = stack ++ Seq(startElement)
-            extractionFunction(newStack.toList)
+            extractionFunction(newStack.toVector)
               .map { f =>
                 Capturing(
-                  stack = newStack.toList,
+                  stack = newStack.toVector,
                   state = ScalaXmlElemBuilder.initial.process(startElement),
                   callback = f
                 )

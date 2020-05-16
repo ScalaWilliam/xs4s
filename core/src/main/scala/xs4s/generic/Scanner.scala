@@ -1,7 +1,9 @@
 package xs4s.generic
 
 /**
-  * A Scanner of functions that allow us to .scan/.scanLeft and then extract a final result when the state emits it
+  * A Scanner of functions that allow us to .scan/.scanLeft and then extract a
+  * final result when the state emits it. This is useful for finite-state machines
+  * who produce some sort of optional output result after every iteration.
   */
 trait Scanner[In, State, Out] {
   def initial: State
@@ -32,4 +34,21 @@ object Scanner {
       override def collect(state: S): Option[V] = scanner.collect(state).map(f)
     }
   }
+
+  trait ScannerSyntaxes {
+
+    implicit class RichScanner[T, S, O](scanner: Scanner[T, S, O]) {
+      def iteratorPipe: Iterator[T] => Iterator[O] =
+        _.scanLeft(scanner.initial)(scanner.scan).flatMap(scanner.collect)
+    }
+
+    implicit class RichIteratorScanner[I](iterator: Iterator[I]) {
+      def through[S, O](scanner: Scanner[I, S, O]): Iterator[O] =
+        scanner.iteratorPipe(iterator)
+
+      def lastOption: Option[I] = iterator.toStream.lastOption
+    }
+
+  }
+
 }

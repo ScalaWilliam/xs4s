@@ -7,6 +7,10 @@ import xs4s.generic.Scanner
 
 import scala.xml._
 
+/**
+ * This is a finite-state-machine (FSM) with a Scanner that
+ * constructs scala.xml.* from javax.xml.stream.events.XMLEvent
+ */
 private[xs4s] object ScalaXmlElemBuilder {
 
   def initial: ScalaXmlElemBuilder = noElem

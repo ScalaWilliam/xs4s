@@ -18,44 +18,55 @@ Add the following to your build.sbt:
 ```sbt
 scalaVersion := "2.12.3"
 
-libraryDependencies += "com.scalawilliam" %% "xs4s" % "0.6"
+libraryDependencies += "com.scalawilliam" %% "xs4s-core" % "0.6"
+libraryDependencies += "com.scalawilliam" %% "xs4s-fs2" % "0.6"
 
 // optionally, if you want to use a snapshot build.
 // resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
 ```
 
-Then, 
+Then, you can implement functions such as the following ([BriefFS2Example](example/src/main/scala/xs4s/example/brief/BriefFS2Example.scala) - note the explicit types are for clarity):
 
 ```scala
-import fs2._
-import cats.effect._
-import xs4s._
-import scala.xml.Elem
-import xs4s.syntax._
-import javax.xml.stream.events.XMLEvent
+/**
+  *
+  * @param byteStream Could be, for example, fs2.io.readInputStream(inputStream)
+  * @param blocker obtained with Blocker[IO]
+  */
+def extractAnchorTexts(byteStream: Stream[IO, Byte], blocker: Blocker)(
+    implicit cs: ContextShift[IO]): Stream[IO, String] = {
 
-// extract all elements called 'anchor'
-val anchorElementExtractor: XmlElementExtractor[Elem] = XmlElementExtractor.filterElementsByName("anchor")
-val byteStream: Stream[IO, Byte] = ??? // could be for example, fs2.io.readInputStream(inputStream)
-val blocker: Blocker = ???
-val xmlEventStream: Stream[IO, XMLEvent] = byteStream.through(byteStreamToXmlEventStream(blocker))
-// collect your anchor Elements and do what you need
-val anchorElements: Stream[IO, Elem] = xmlEventStream.through(anchorElementExtractor.fs2Pipe)
-val anchorTexts: Stream[IO, String] = anchorElements.map(_.text)
+  /** extract all elements called 'anchor' **/
+  val anchorElementExtractor: XmlElementExtractor[Elem] =
+    XmlElementExtractor.filterElementsByName("anchor")
+
+  /** Turn into XMLEvent */
+  val xmlEventStream: Stream[IO, XMLEvent] =
+    byteStream.through(byteStreamToXmlEventStream(blocker))
+
+  /** Collect all the anchors as [[scala.xml.Elem]] */
+  val anchorElements: Stream[IO, Elem] =
+    xmlEventStream.through(anchorElementExtractor.toFs2PipeThrowError)
+
+  /** And finally extract the text contents for each Elem */
+  anchorElements.map(_.text)
+}
 ```
 
-Alternatively, we have a plain-Scala API, especially where you have legacy Java interaction, or you feel uncomfortable with pure FP for now:
+Alternatively, we have a plain-Scala API, especially where you have legacy Java interaction, or you feel uncomfortable with pure FP for now: [BriefPlainScalaExample](example/src/main/scala/xs4s/example/brief/BriefPlainScalaExample.scala).:
 
 ```scala
-import xs4s._
-import xs4s.syntax._
-import scala.xml.Elem
-import javax.xml.stream.XMLEventReader
-// extract all elements called 'anchor'
-val anchorElementExtractor: XmlElementExtractor[Elem] = XmlElementExtractor.filterElementsByName("anchor")
-val xmlEventReader: XMLEventReader = ??? // you can obtain one via XMLEventFactory
-val elements: Iterator[Elem] = xmlEventReader.extractXml(anchorElementExtractor) 
-val text: Iterator[String] = elements.map(_.text) 
+def extractAnchorTexts(sourceFile: File): Unit = {
+  val anchorElementExtractor: XmlElementExtractor[Elem] =
+    XmlElementExtractor.filterElementsByName("anchor")
+  val xmlEventReader = XMLStream.fromFile(sourceFile)
+  try {
+    val elements: Iterator[Elem] =
+      xmlEventReader.extractWith(anchorElementExtractor)
+    val text: Iterator[String] = elements.map(_.text)
+    text.foreach(println)
+  } finally xmlEventReader.close()
+}
 ``` 
 
 Example

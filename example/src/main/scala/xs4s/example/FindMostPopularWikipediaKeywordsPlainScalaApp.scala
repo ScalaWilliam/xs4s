@@ -2,7 +2,8 @@ package xs4s.example
 
 import java.util.zip.GZIPInputStream
 
-import xs4s.syntax._
+import xs4s.syntax.core._
+import xs4s.syntax.generic._
 import javax.xml.stream.XMLInputFactory
 
 object FindMostPopularWikipediaKeywordsPlainScalaApp extends App {

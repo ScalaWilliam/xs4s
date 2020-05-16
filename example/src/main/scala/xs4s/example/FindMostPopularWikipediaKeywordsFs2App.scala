@@ -2,18 +2,16 @@ package xs4s.example
 
 import cats.effect.{Blocker, ExitCode, IO, IOApp}
 import cats.implicits._
-import javax.xml.stream.XMLInputFactory
-import xs4s._
-import xs4s.syntax._
+import xs4s.fs2compat._
+import xs4s.syntax.fs2._
 
 object FindMostPopularWikipediaKeywordsFs2App extends IOApp {
 
   def run(args: List[String]): IO[ExitCode] =
     Blocker[IO].use { blocker =>
       wikipediaXmlBytes(blocker)
-        .through(
-          byteStreamToXmlEventStream(XMLInputFactory.newInstance(), blocker))
-        .through(anchorExtractor.pipeThrowError)
+        .through(byteStreamToXmlEventStream(blocker))
+        .through(anchorExtractor.toFs2PipeThrowError)
         .through(stream => // by default, get a sub-set of the stream
           if (args.contains("full")) stream else stream.take(500))
         .map(_.text)

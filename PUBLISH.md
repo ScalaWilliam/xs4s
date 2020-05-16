@@ -16,6 +16,8 @@ $ sbt +core/publishSigned
 
 Then in https://oss.sonatype.org/ log in, go to 'Staging Repositories', sort by date descending, select the latest package, click 'Close' and then 'Release'.
 
-Then go to Sonatype JIRA https://issues.sonatype.org/secure/Dashboard.jspa
+https://central.sonatype.org/pages/releasing-the-deployment.html
+
+To initially set up, go to Sonatype JIRA https://issues.sonatype.org/secure/Dashboard.jspa
 
 ScalaWilliam <https://www.scalawilliam.com/>

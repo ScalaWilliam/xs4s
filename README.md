@@ -87,20 +87,7 @@ StAX events into Scala XML classes.
 
 This can consume 100MB files or 4GB files without any problems. And it does it fast. It converts XML streams into Scala XML trees on demand, which you can then query from.
 
-Publishing
+Authors & Contributors
 ======
-``` bash
-$ cat <<EOF > ~/.sbt/0.13/sonatype.sbt
-credentials +=
-  Credentials("Sonatype Nexus Repository Manager",
-              "oss.sonatype.org",
-              "USERNAME",
-              "PASSWORD")
-EOF
-
-$ sbt +core/publishSigned
-```
-
-Then in https://oss.sonatype.org/ log in, go to 'Staging Repositories', sort by date descending, select the latest package, click 'Close' and then 'Release'.
-
-ScalaWilliam <https://www.scalawilliam.com/>
+- @ScalaWilliam <https://www.scalawilliam.com/>
+- @stettix <http://www.janvsmachine.net/>

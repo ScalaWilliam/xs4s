@@ -15,10 +15,10 @@ import scala.language.higherKinds
   */
 trait Fs2Syntax {
 
-  implicit class RichScanner[T, S, O](scanner: Scanner[T, S, O]) {
+  implicit class RichScanner[In, State, Out](scanner: Scanner[In, State, Out]) {
 
     /** Create an FS2 Pipe from the scanner */
-    def fs2Pipe[F[_]]: Pipe[F, T, O] =
+    def fs2Pipe[F[_]]: Pipe[F, In, Out] =
       _.scan(scanner.initial)(scanner.scan).map(scanner.collect).unNone
   }
 

@@ -51,8 +51,19 @@ lazy val fs2 = project
     )
   )
 
+lazy val zio = project
+  .dependsOn(core)
+  .settings(
+    name := "xs4s-zio",
+    libraryDependencies ++= Seq(
+      "dev.zio" %% "zio" % "1.0.0-RC21-2",
+      "dev.zio" %% "zio-streams" % "1.0.0-RC21-2"
+    )
+  )
+
 lazy val example = project
   .dependsOn(fs2)
+  .dependsOn(zio)
   .dependsOn(core)
   .settings(
     publishArtifact := false

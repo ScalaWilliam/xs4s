@@ -5,6 +5,7 @@ import java.net.URL
 import fs2.Pipe
 
 import scala.xml.Elem
+import zio.stream.ZStream
 
 package object example {
 
@@ -26,6 +27,16 @@ package object example {
       .reduce(mergeCountMaps[I])
       .map(_.filter(_._2 > 1))
       .map(_.toList.sortBy { case (keyword, count) => -count })
+
+  def countTopItemsZIO[R, I]: ZStream[R, Throwable, I] => ZStream[R, Throwable, List[(I, Int)]] = { s =>
+    val res = s.fold(Map.empty[I, Int].withDefaultValue(0)){ (acc: Map[I, Int], v: I) =>
+      acc.updated(v, acc(v)+1)
+    }
+      .map(_.filter(_._2 > 1))
+      .map(_.toList.sortBy { case (keyword, count) => -count })
+
+    ZStream.fromEffect(res)
+  }
 
   def countTopItemsIterator[I]: Iterator[I] => List[(I, Int)] =
     _.map(v => Map(v -> 1))

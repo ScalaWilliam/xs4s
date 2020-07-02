@@ -9,6 +9,7 @@ lazy val root = (project in file("."))
   .aggregate(core)
   .aggregate(example)
   .aggregate(fs2)
+  .aggregate(zio)
   .settings(publishArtifact := false)
 
 lazy val core = project.settings(

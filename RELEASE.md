@@ -11,7 +11,7 @@ credentials +=
 EOF
 
 $ export GPG_TTY=$(tty)
-$ sbt +core/publishSigned
+$ sbt ++test +publishSigned
 ```
 
 Then in https://oss.sonatype.org/ log in, go to 'Staging Repositories', sort by date descending, select the latest package, click 'Close' and then 'Release'.

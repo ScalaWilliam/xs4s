@@ -3,7 +3,7 @@ name := "xs4s-root"
 scalaVersion in ThisBuild := "2.12.11"
 crossScalaVersions in ThisBuild := Seq("2.12.11", "2.13.2")
 organization in ThisBuild := "com.scalawilliam"
-version in ThisBuild := "0.8"
+version in ThisBuild := "0.8.1"
 
 lazy val root = (project in file("."))
   .aggregate(core)

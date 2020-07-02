@@ -23,9 +23,9 @@ It uses the standard XML API (https://github.com/FasterXML/woodstox) as a back-e
 Add the following to your build.sbt (compatible with Scala 2.12 and 2.13 series):
 
 ```sbt
-libraryDependencies += "com.scalawilliam" %% "xs4s-core" % "0.8.1"
-libraryDependencies += "com.scalawilliam" %% "xs4s-fs2" % "0.8.1"
-libraryDependencies += "com.scalawilliam" %% "xs4s-zio" % "0.8.1"
+libraryDependencies += "com.scalawilliam" %% "xs4s-core" % "0.8.0"
+libraryDependencies += "com.scalawilliam" %% "xs4s-fs2" % "0.8.0"
+libraryDependencies += "com.scalawilliam" %% "xs4s-zio" % "0.8.0"
 ```
 
 ## Examples

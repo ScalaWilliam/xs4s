@@ -1,9 +1,9 @@
 name := "xs4s-root"
 
-scalaVersion in ThisBuild := "2.13.4"
-crossScalaVersions in ThisBuild := Seq("2.12.12", "2.13.4")
-organization in ThisBuild := "com.scalawilliam"
-version in ThisBuild := "0.8.4"
+ThisBuild / scalaVersion := "2.13.4"
+ThisBuild / crossScalaVersions := Seq("2.12.12", "2.13.4")
+ThisBuild / organization := "com.scalawilliam"
+ThisBuild / version := "0.8.5"
 
 lazy val root = (project in file("."))
   .aggregate(core)
@@ -22,13 +22,13 @@ lazy val core = project.settings(
   name := "xs4s-core"
 )
 
-pomIncludeRepository in ThisBuild := { _ =>
+ThisBuild / pomIncludeRepository := { _ =>
   false
 }
 
-publishMavenStyle in ThisBuild := true
+ThisBuild / publishMavenStyle := true
 
-publishTo in ThisBuild := {
+ThisBuild / publishTo := {
   val nexus = "https://oss.sonatype.org/"
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
@@ -71,28 +71,32 @@ lazy val example = project
   )
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
+ThisBuild / organizationHomepage := Some(url("https://www.scalawilliam.com"))
 
-pomExtra in ThisBuild := <url>https://github.com/ScalaWilliam/xs4s</url>
-  <licenses>
-    <license>
-      <name>BSD-style</name>
-      <url>http://www.opensource.org/licenses/bsd-license.php</url>
-      <distribution>repo</distribution>
-    </license>
-    <license>
-      <name>The Apache Software License, Version 2.0</name>
-      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
-  <scm>
-    <url>git@github.com:ScalaWilliam/xs4s.git</url>
-    <connection>scm:git:git@github.com:ScalaWilliam/xs4s.git</connection>
-  </scm>
-  <developers>
-    <developer>
-      <id>ScalaWilliam</id>
-      <name>William Narmontas</name>
-      <url>https://www.scalawilliam.com</url>
-    </developer>
-  </developers>
+ThisBuild / scmInfo := Some(
+  ScmInfo(
+    url("https://github.com/ScalaWilliam/xs4s"),
+    "scm:git:git@github.com:ScalaWilliam/xs4s.git"
+  )
+)
+ThisBuild / developers := List(
+  Developer(
+    id    = "ScalaWilliam",
+    name  = "ScalaWilliam",
+    email = "hello@scalawilliam.com",
+    url   = url("https://www.scalawilliam.com/")
+  )
+)
+ThisBuild / description := "XML Streaming library for Scala"
+ThisBuild / licenses := List(
+  "Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"),
+  "BSD-style" -> new URL("http://www.opensource.org/licenses/bsd-license.php")
+)
+ThisBuild / homepage := Some(url("https://github.com/ScalaWilliam/xs4s"))
+ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / publishTo := {
+  val nexus = "https://oss.sonatype.org/"
+  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+}
+ThisBuild / publishMavenStyle := true

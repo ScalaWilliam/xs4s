@@ -6,12 +6,15 @@ Publishing
 # commit
 # git tag v*
 # git push
-$ cat <<EOF > ~/.sbt/1.0/sonatype.sbt
-credentials +=
-  Credentials("Sonatype Nexus Repository Manager",
-              "oss.sonatype.org",
-              "USERNAME",
-              "PASSWORD")
+# cat <<EOF > ~/.sbt/sonatype_credentials
+realm=Sonatype Nexus Repository Manager
+host=oss.sonatype.org
+user=<your username>
+password=<your password>
+EOF
+$ nano ~/.sbt/sonatype_credentials
+$ cat <<EOF > ~/.sbt/1.1/sonatype.sbt
+credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
 EOF
 
 $ export GPG_TTY=$(tty)

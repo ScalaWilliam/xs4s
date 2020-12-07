@@ -1,9 +1,9 @@
 name := "xs4s-root"
 
-scalaVersion in ThisBuild := "2.12.11"
-crossScalaVersions in ThisBuild := Seq("2.12.11", "2.13.2")
+scalaVersion in ThisBuild := "2.13.4"
+crossScalaVersions in ThisBuild := Seq("2.12.12", "2.13.4")
 organization in ThisBuild := "com.scalawilliam"
-version in ThisBuild := "0.8.2"
+version in ThisBuild := "0.8.3"
 
 lazy val root = (project in file("."))
   .aggregate(core)
@@ -16,7 +16,7 @@ lazy val core = project.settings(
   libraryDependencies ++= Seq(
     "xmlunit"                % "xmlunit"           % "1.6" % "test",
     "org.codehaus.woodstox"  % "woodstox-core-asl" % "4.4.1",
-    "org.scalatest"          %% "scalatest"        % "3.1.2" % "test",
+    "org.scalatest"          %% "scalatest"        % "3.2.3" % "test",
     "org.scala-lang.modules" %% "scala-xml"        % "1.3.0"
   ),
   name := "xs4s-core"
@@ -47,8 +47,8 @@ lazy val fs2 = project
   .settings(
     name := "xs4s-fs2",
     libraryDependencies ++= Seq(
-      "co.fs2" %% "fs2-core" % "2.3.0",
-      "co.fs2" %% "fs2-io"   % "2.3.0"
+      "co.fs2" %% "fs2-core" % "2.4.6",
+      "co.fs2" %% "fs2-io"   % "2.4.6"
     )
   )
 
@@ -57,8 +57,8 @@ lazy val zio = project
   .settings(
     name := "xs4s-zio",
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio" % "1.0.0-RC21-2",
-      "dev.zio" %% "zio-streams" % "1.0.0-RC21-2"
+      "dev.zio" %% "zio" % "1.0.3",
+      "dev.zio" %% "zio-streams" % "1.0.3"
     )
   )
 

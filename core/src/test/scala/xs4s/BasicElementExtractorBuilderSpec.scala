@@ -1,7 +1,10 @@
 package xs4s
 
+import org.scalatest.matchers.should.Matchers._
 import xs4s.syntax.core._
-import org.scalatest.{Inside, Matchers, WordSpec}
+import org.scalatest.Inside._
+import org.scalatest.wordspec.AnyWordSpec
+
 import scala.xml.Elem
 
 /**
@@ -11,9 +14,7 @@ import scala.xml.Elem
   * This version concerns a simple List[ElementName] which does not bother with prefixes and the like
   */
 final class BasicElementExtractorBuilderSpec
-    extends WordSpec
-    with Matchers
-    with Inside {
+    extends AnyWordSpec {
   "Basic element extractor" must {
 
     val input =

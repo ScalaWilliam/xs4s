@@ -2,6 +2,10 @@
 Publishing
 ======
 ``` bash
+# update version in build.sbt
+# commit
+# git tag v*
+# git push
 $ cat <<EOF > ~/.sbt/1.0/sonatype.sbt
 credentials +=
   Credentials("Sonatype Nexus Repository Manager",

@@ -9,8 +9,8 @@ Publishing
 # cat <<EOF > ~/.sbt/sonatype_credentials
 realm=Sonatype Nexus Repository Manager
 host=oss.sonatype.org
-user=<your username>
-password=<your password>
+user=fill in
+password=fill in
 EOF
 $ nano ~/.sbt/sonatype_credentials
 $ cat <<EOF > ~/.sbt/1.1/sonatype.sbt

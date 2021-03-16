@@ -22,7 +22,7 @@ object FindMostPopularWikipediaKeywordsPlainScalaApp extends App {
       val limitedAnchorElements =
         if (args.contains("full")) anchorElements else anchorElements.take(500)
       countTopItemsIterator(limitedAnchorElements).foreach {
-        case (elem, count) => println(count, elem)
+        case (elem, count) => println(s"$count × $elem")
       }
     } finally xmlStreamReader.close()
   } finally inputStream.close()

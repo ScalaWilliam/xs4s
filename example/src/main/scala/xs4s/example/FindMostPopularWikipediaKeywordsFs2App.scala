@@ -18,7 +18,7 @@ object FindMostPopularWikipediaKeywordsFs2App extends IOApp {
         .through(countTopItemsFs2)
         .evalMap(list =>
           list.traverse_ {
-            case (elem, count) => IO.delay(println(count, elem))
+            case (elem, count) => IO.delay(println(s"$count × $elem"))
         })
         .compile
         .drain
@@ -36,6 +36,7 @@ object FindMostPopularWikipediaKeywordsFs2App extends IOApp {
         blocker = blocker,
         closeAfterUse = true
       )
-      .through(fs2.compress.gunzip(bufferSize = 1024))
+      .through(fs2.compression.gunzip(bufferSize = 1024))
+      .flatMap(_.content)
 
 }

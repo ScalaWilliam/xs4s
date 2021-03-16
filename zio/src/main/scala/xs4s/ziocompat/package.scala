@@ -20,9 +20,9 @@ package object ziocompat {
     * */
   def byteStreamToXmlEventStream[R <: Blocking](
     xmlInputFactory: XMLInputFactory = defaultXmlInputFactory
-  ): Pipe[R, Byte, XMLEvent] = { byteStream: ZStream[R,Throwable,Byte] =>
+  ): Pipe[R, Byte, XMLEvent] = { (byteStream: ZStream[R,Throwable,Byte]) =>
 
-    val reader = byteStream.toInputStream.mapEffect { is: InputStream =>
+    val reader = byteStream.toInputStream.mapEffect { (is: InputStream) =>
       xmlInputFactory.createXMLEventReader(is)
     }
 

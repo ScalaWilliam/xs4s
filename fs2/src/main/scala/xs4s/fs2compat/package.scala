@@ -18,7 +18,8 @@ package object fs2compat {
     * */
   def byteStreamToXmlEventStream[F[_]: ConcurrentEffect: ContextShift](
       blocker: Blocker,
-      xmlInputFactory: XMLInputFactory = defaultXmlInputFactory)(
+      xmlInputFactory: XMLInputFactory = defaultXmlInputFactory,
+      chunkSize: Int = 1)(
       implicit F: Sync[F]): Pipe[F, Byte, XMLEvent] =
     byteStream =>
       Stream
@@ -29,5 +30,6 @@ package object fs2compat {
               blocker,
               Resource.make(
                 F.delay(xmlInputFactory.createXMLEventReader(inputStream)))(
-                xmlEventReader => F.delay(xmlEventReader.close()))))
+                xmlEventReader => F.delay(xmlEventReader.close())),
+              chunkSize))
 }

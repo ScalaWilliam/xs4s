@@ -27,14 +27,15 @@ trait Fs2Syntax {
     /** Create an XMLEvent Stream from an XMLEventReader */
     def xmlEventStream[F[_]: ContextShift: Sync](
         blocker: Blocker,
-        xmlEventReader: Resource[F, XMLEventReader]): Stream[F, XMLEvent] =
+        xmlEventReader: Resource[F, XMLEventReader],
+        chunkSize: Int = 1): Stream[F, XMLEvent] =
       Stream
         .resource(xmlEventReader)
         .flatMap(
           reader =>
             Stream
               .fromBlockingIterator[F]
-              .apply[XMLEvent](blocker, reader.toIterator))
+              .apply[XMLEvent](blocker, reader.toIterator, chunkSize))
   }
 
   implicit class RichXmlElementExtractor[O](

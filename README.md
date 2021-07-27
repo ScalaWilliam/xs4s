@@ -20,3 +20,4 @@ Find the full documentation at --> **https://www.scalawilliam.com/xml-streaming-
 - @ScalaWilliam <https://www.scalawilliam.com/>
 - @stettix <http://www.janvsmachine.net/>
 - @er1c <https://twitter.com/ericpeters>
+- @LolHens <https://lolhens.de/>

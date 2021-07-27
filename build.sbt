@@ -48,8 +48,8 @@ lazy val fs2 = project
   .settings(
     name := "xs4s-fs2",
     libraryDependencies ++= Seq(
-      "co.fs2" %% "fs2-core" % "2.5.3",
-      "co.fs2" %% "fs2-io"   % "2.5.3"
+      "co.fs2" %% "fs2-core" % "2.5.9",
+      "co.fs2" %% "fs2-io"   % "2.5.9"
     )
   )
 

@@ -13,7 +13,7 @@ user=fill in
 password=fill in
 EOF
 $ nano ~/.sbt/sonatype_credentials
-$ cat <<EOF > ~/.sbt/1.1/sonatype.sbt
+$ cat <<EOF > ~/.sbt/1.0/sonatype.sbt
 credentials += Credentials(Path.userHome / ".sbt" / "sonatype_credentials")
 EOF
 

@@ -1,9 +1,9 @@
 name := "xs4s-root"
 
-ThisBuild / scalaVersion := "2.13.5"
-ThisBuild / crossScalaVersions := Seq("2.12.12", "2.13.5", "3.0.0-RC1")
+ThisBuild / scalaVersion := "2.13.6"
+ThisBuild / crossScalaVersions := Seq("2.12.12", "2.13.6", "3.0.1")
 ThisBuild / organization := "com.scalawilliam"
-ThisBuild / version := "0.8.7"
+ThisBuild / version := "0.8.8"
 ThisBuild / resolvers += Resolver.JCenterRepository
 
 lazy val root = (project in file("."))
@@ -18,7 +18,7 @@ lazy val core = project.settings(
     "xmlunit"                % "xmlunit"           % "1.6" % "test",
     "org.codehaus.woodstox"  % "woodstox-core-asl" % "4.4.1",
     "org.scalatest"          %% "scalatest"        % "3.2.6" % "test",
-    "org.scala-lang.modules" %% "scala-xml"        % "2.0.0-M5"
+    "org.scala-lang.modules" %% "scala-xml"        % "2.0.1"
   ),
   name := "xs4s-core"
 )

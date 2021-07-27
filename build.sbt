@@ -10,6 +10,7 @@ lazy val root = (project in file("."))
   .aggregate(core)
   .aggregate(example)
   .aggregate(fs2)
+  .aggregate(fs2v3)
   .aggregate(zio)
   .settings(publishArtifact := false)
 
@@ -48,8 +49,17 @@ lazy val fs2 = project
   .settings(
     name := "xs4s-fs2",
     libraryDependencies ++= Seq(
-      "co.fs2" %% "fs2-core" % "2.5.9",
-      "co.fs2" %% "fs2-io"   % "2.5.9"
+      "co.fs2" %% "fs2-io" % "2.5.9"
+    )
+  )
+
+lazy val fs2v3 = project
+  .dependsOn(core)
+  .settings(
+    name := "xs4s-fs2",
+    libraryDependencies ++= Seq(
+      "co.fs2"        %% "fs2-io"    % "3.0.6",
+      "org.scalatest" %% "scalatest" % "3.2.9" % "test"
     )
   )
 
@@ -58,7 +68,7 @@ lazy val zio = project
   .settings(
     name := "xs4s-zio",
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio" % "1.0.9",
+      "dev.zio" %% "zio"         % "1.0.9",
       "dev.zio" %% "zio-streams" % "1.0.9"
     )
   )
@@ -82,22 +92,25 @@ ThisBuild / scmInfo := Some(
 )
 ThisBuild / developers := List(
   Developer(
-    id    = "ScalaWilliam",
-    name  = "ScalaWilliam",
+    id = "ScalaWilliam",
+    name = "ScalaWilliam",
     email = "hello@scalawilliam.com",
-    url   = url("https://www.scalawilliam.com/")
+    url = url("https://www.scalawilliam.com/")
   )
 )
 ThisBuild / description := "XML Streaming library for Scala"
 ThisBuild / licenses := List(
-  "Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"),
+  "Apache 2"  -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt"),
   "BSD-style" -> new URL("http://www.opensource.org/licenses/bsd-license.php")
 )
 ThisBuild / homepage := Some(url("https://github.com/ScalaWilliam/xs4s"))
-ThisBuild / pomIncludeRepository := { _ => false }
+ThisBuild / pomIncludeRepository := { _ =>
+  false
+}
 ThisBuild / publishTo := {
   val nexus = "https://oss.sonatype.org/"
-  if (isSnapshot.value) Some("snapshots" at nexus + "content/repositories/snapshots")
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 ThisBuild / publishMavenStyle := true

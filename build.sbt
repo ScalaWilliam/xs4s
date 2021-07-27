@@ -58,8 +58,8 @@ lazy val zio = project
   .settings(
     name := "xs4s-zio",
     libraryDependencies ++= Seq(
-      "dev.zio" %% "zio" % "1.0.5",
-      "dev.zio" %% "zio-streams" % "1.0.5"
+      "dev.zio" %% "zio" % "1.0.9",
+      "dev.zio" %% "zio-streams" % "1.0.9"
     )
   )
 

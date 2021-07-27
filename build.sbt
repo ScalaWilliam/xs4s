@@ -3,7 +3,7 @@ name := "xs4s-root"
 ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / crossScalaVersions := Seq("2.12.12", "2.13.6", "3.0.1")
 ThisBuild / organization := "com.scalawilliam"
-ThisBuild / version := "0.8.8"
+ThisBuild / version := "0.9.0"
 ThisBuild / resolvers += Resolver.JCenterRepository
 
 lazy val root = (project in file("."))

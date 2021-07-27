@@ -17,7 +17,7 @@ lazy val core = project.settings(
   libraryDependencies ++= Seq(
     "xmlunit"                % "xmlunit"           % "1.6" % "test",
     "org.codehaus.woodstox"  % "woodstox-core-asl" % "4.4.1",
-    "org.scalatest"          %% "scalatest"        % "3.2.6" % "test",
+    "org.scalatest"          %% "scalatest"        % "3.2.9" % "test",
     "org.scala-lang.modules" %% "scala-xml"        % "2.0.1"
   ),
   name := "xs4s-core"

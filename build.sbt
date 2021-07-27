@@ -3,7 +3,7 @@ name := "xs4s-root"
 ThisBuild / scalaVersion := "2.13.6"
 ThisBuild / crossScalaVersions := Seq("2.12.12", "2.13.6", "3.0.1")
 ThisBuild / organization := "com.scalawilliam"
-ThisBuild / version := "0.9.0"
+ThisBuild / version := "0.9.1"
 ThisBuild / resolvers += Resolver.JCenterRepository
 
 lazy val root = (project in file("."))
@@ -56,7 +56,7 @@ lazy val fs2 = project
 lazy val fs2v3 = project
   .dependsOn(core)
   .settings(
-    name := "xs4s-fs2",
+    name := "xs4s-fs2v3",
     libraryDependencies ++= Seq(
       "co.fs2"        %% "fs2-io"    % "3.0.6",
       "org.scalatest" %% "scalatest" % "3.2.9" % "test"

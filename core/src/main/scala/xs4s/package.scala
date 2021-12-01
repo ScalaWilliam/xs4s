@@ -1,4 +1,4 @@
-import javax.xml.stream.{XMLEventReader, XMLInputFactory}
+import javax.xml.stream.{XMLEventReader, XMLInputFactory, XMLOutputFactory}
 import javax.xml.stream.events.XMLEvent
 import xs4s.additions.{XMLEventReaderMaker, XMLLoader}
 
@@ -33,6 +33,9 @@ package object xs4s {
 
   private[xs4s] def defaultXmlInputFactory: XMLInputFactory =
     XMLInputFactory.newInstance()
+
+  private[xs4s] def defaultXmlOutputFactory: XMLOutputFactory =
+    XMLOutputFactory.newInstance()
 
   /**
     * Utilities to replicate [[scala.xml.XML]]

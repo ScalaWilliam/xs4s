@@ -56,7 +56,8 @@ trait Fs2Syntax {
         .drain
   }
 
-  implicit class RichXmlElementExtractor[O](xmlElementExtractor: XmlElementExtractor[O]) {
+  implicit class RichXmlElementExtractor[O](
+      xmlElementExtractor: XmlElementExtractor[O]) {
     def toFs2PipeThrowError[F[_]]: Pipe[F, XMLEvent, O] =
       xmlElementExtractor.scannerThrowingOnError.fs2Pipe[F]
     def toFs2PipeIncludeError[F[_]]: Pipe[F, XMLEvent, Either[Throwable, O]] =

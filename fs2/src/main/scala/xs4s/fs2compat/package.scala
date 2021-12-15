@@ -2,7 +2,7 @@ package xs4s
 
 import fs2._
 import cats.effect.{Blocker, ConcurrentEffect, ContextShift, Resource, Sync}
-import javax.xml.stream.XMLInputFactory
+import javax.xml.stream.{XMLInputFactory, XMLOutputFactory}
 import javax.xml.stream.events.XMLEvent
 import syntax.fs2._
 
@@ -32,4 +32,21 @@ package object fs2compat {
                 F.delay(xmlInputFactory.createXMLEventReader(inputStream)))(
                 xmlEventReader => F.delay(xmlEventReader.close())),
               chunkSize))
+
+  /**
+    * Turns an FS2 XMLEvent Stream into a stream of Bytes.
+    **/
+  def xmlEventStreamToByteStream[F[_]: ConcurrentEffect: ContextShift](
+      blocker: Blocker,
+      xmlOutputFactory: XMLOutputFactory = defaultXmlOutputFactory,
+      chunkSize: Int)(
+      implicit F: Sync[F]): Pipe[F, XMLEvent, Byte] =
+    (xmlEventStream: Stream[F, XMLEvent]) =>
+      io.readOutputStream(blocker, chunkSize)(
+        outputStream =>
+          xmlEventStream.writeXmlEventStream(
+            Resource.make(
+              F.delay(xmlOutputFactory.createXMLEventWriter(outputStream)))(
+              XMLEventWriter => F.delay(XMLEventWriter.close()))
+          ))
 }

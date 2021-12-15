@@ -6,7 +6,7 @@ import xs4s.XmlElementExtractor
 import xs4s.generic.Scanner
 import xs4s.syntax.core._
 
-import javax.xml.stream.XMLEventReader
+import javax.xml.stream.{XMLEventReader, XMLEventWriter}
 import javax.xml.stream.events.XMLEvent
 import scala.language.higherKinds
 
@@ -35,6 +35,25 @@ trait Fs2Syntax {
             Stream
               .fromBlockingIterator[F]
               .apply[XMLEvent](reader.toIterator, chunkSize))
+  }
+
+  implicit class RichFs2XmlEventStream[F[_] : Sync](stream: Stream[F, XMLEvent]) {
+
+    /** Writes an XMLEvent Stream to an XMLEventWriter */
+    def writeXmlEventStream(
+        xmlEventWriter: Resource[F, XMLEventWriter]): F[Unit] =
+      Stream
+        .resource(xmlEventWriter)
+        .flatMap(
+          stream
+            .chunks
+            .fold(_) { (writer, events) =>
+              events.foreach(writer.add)
+              writer.flush()
+              writer
+            })
+        .compile
+        .drain
   }
 
   implicit class RichXmlElementExtractor[O](

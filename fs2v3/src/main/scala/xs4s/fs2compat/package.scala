@@ -4,7 +4,7 @@ import cats.effect.{Async, Resource, Sync}
 import fs2._
 import xs4s.syntax.fs2._
 
-import javax.xml.stream.XMLInputFactory
+import javax.xml.stream.{XMLInputFactory, XMLOutputFactory}
 import javax.xml.stream.events.XMLEvent
 import scala.language.higherKinds
 
@@ -29,4 +29,19 @@ package object fs2compat {
                 F.delay(xmlInputFactory.createXMLEventReader(inputStream)))(
                 xmlEventReader => F.delay(xmlEventReader.close())),
               chunkSize))
+
+  /**
+    * Turns an FS2 XMLEvent Stream into a stream of Bytes.
+    **/
+  def xmlEventStreamToByteStream[F[_] : Async](
+      xmlOutputFactory: XMLOutputFactory = defaultXmlOutputFactory,
+      chunkSize: Int)(implicit F: Sync[F]): Pipe[F, XMLEvent, Byte] =
+    (xmlEventStream: Stream[F, XMLEvent]) =>
+      io.readOutputStream(chunkSize)(
+        outputStream =>
+          xmlEventStream.writeXmlEventStream(
+            Resource.make(
+              F.delay(xmlOutputFactory.createXMLEventWriter(outputStream)))(
+              XMLEventWriter => F.delay(XMLEventWriter.close()))
+          ))
 }

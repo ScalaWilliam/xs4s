@@ -5,7 +5,6 @@ import zio.stream._
 import javax.xml.stream.XMLInputFactory
 import javax.xml.stream.events.XMLEvent
 import syntax.zio._
-import zio.blocking.Blocking
 import java.io.InputStream
 
 package object ziocompat {
@@ -18,11 +17,11 @@ package object ziocompat {
     * then creates a reader, and then creates a further stream
     * from the Iterator that was obtained.
     * */
-  def byteStreamToXmlEventStream[R <: Blocking](
+  def byteStreamToXmlEventStream[R](
     xmlInputFactory: XMLInputFactory = defaultXmlInputFactory
-  ): Pipe[R, Byte, XMLEvent] = { (byteStream: ZStream[R,Throwable,Byte]) =>
+  ): Pipe[R with Scope, Byte, XMLEvent] = { (byteStream: ZStream[R with Scope,Throwable,Byte]) =>
 
-    val reader = byteStream.toInputStream.mapEffect { (is: InputStream) =>
+    val reader = byteStream.toInputStream.mapAttempt { (is: InputStream) =>
       xmlInputFactory.createXMLEventReader(is)
     }
 

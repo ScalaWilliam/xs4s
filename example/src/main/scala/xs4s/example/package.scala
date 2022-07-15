@@ -29,13 +29,11 @@ package object example {
       .map(_.toList.sortBy { case (keyword, count) => -count })
 
   def countTopItemsZIO[R, I]: ZStream[R, Throwable, I] => ZStream[R, Throwable, List[(I, Int)]] = { s =>
-    val res = s.fold(Map.empty[I, Int].withDefaultValue(0)){ (acc: Map[I, Int], v: I) =>
-      acc.updated(v, acc(v)+1)
-    }
+    val res = s.runFold(Map.empty[I, Int].withDefaultValue(0)){ (acc, v) => acc.updated(v, acc(v)+1) }
       .map(_.filter(_._2 > 1))
       .map(_.toList.sortBy { case (keyword, count) => -count })
 
-    ZStream.fromEffect(res)
+    ZStream.fromZIO(res)
   }
 
   def countTopItemsIterator[I]: Iterator[I] => List[(I, Int)] =
